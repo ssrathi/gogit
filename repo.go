@@ -1,6 +1,7 @@
 package gogit
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -77,7 +78,6 @@ func NewRepo(path string) (*Repo, error) {
 func GetRepo(path string) (*Repo, error) {
 	for {
 		path, _ = filepath.Abs(path)
-		fmt.Printf("path: %s\n", path)
 
 		// Check if git directory is present.
 		GitDir := filepath.Join(path, ".git")
@@ -96,8 +96,8 @@ func GetRepo(path string) (*Repo, error) {
 		parent := filepath.Dir(path)
 		if parent == path {
 			// This means 'gogit init' was not done before.
-			err := fmt.Errorf(".git not found anywhere in path %q. "+
-				"Use 'init' command to create a repository first.", path)
+			err := errors.New("fatal: not a git repository (or any of the " +
+				"parent directories): .git")
 			return nil, err
 		}
 
