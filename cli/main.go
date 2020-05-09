@@ -5,31 +5,59 @@ import (
 	"flag"
 	"fmt"
 	"gogit"
+	"io/ioutil"
+	"log"
 	"os"
 )
 
 func cmd_init(repo_path string) {
 	repo, err := gogit.NewRepo(repo_path)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	fmt.Printf("Initialized empty Git repository in %s/\n", repo.GitDir)
 }
 
-func cmd_hash_object() {
+func cmd_hash_object(file string, write bool) {
 	repo, err := gogit.GetRepo(".")
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	fmt.Printf("Repo found at %q\n", repo.GitDir)
-	fmt.Println("hash-object done")
+
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	blob := gogit.NewBlob(repo, data)
+	sha1, err := blob.Write(write)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(sha1)
 }
 
-func cmd_cat_file() {
-	fmt.Println("cat-file done")
+func cmd_cat_file(objHash string, getType bool, getSize bool, printObj bool) {
+	repo, err := gogit.GetRepo(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	blob := gogit.NewBlob(repo, nil)
+	if err := blob.Parse(objHash); err != nil {
+		log.Fatal(err)
+	}
+
+	// Only one of 'printObj', 'getType' and 'getSize' is provided.
+	if printObj {
+		fmt.Print(string(blob.Data))
+	} else if getType {
+		fmt.Println(blob.ObjType)
+	} else if getSize {
+		fmt.Println(len(blob.Data))
+	}
 }
 
 func Usage() {
@@ -43,6 +71,10 @@ func Usage() {
 
 func main() {
 	flag.Usage = Usage
+	if len(os.Args) < 2 {
+		Usage()
+		os.Exit(1)
+	}
 
 	// Subcommands
 	initCommand := flag.NewFlagSet("init", flag.ExitOnError)
@@ -52,22 +84,47 @@ func main() {
 	// Options for 'init' subcommand
 	initPath := initCommand.String("path", ".", "Path to create the repository")
 
-	if len(os.Args) < 2 {
-		Usage()
-		os.Exit(1)
-	}
+	// Options for 'hash-object' subcommand
+	hashObjectWriteObj := hashObjectCommand.Bool("w", false,
+		"Actually write the object into the object database.")
+
+	// Options for 'cat-file' subcommand
+	catFileGetType := catFileCommand.Bool("t", false,
+		"Instead of the content, show the object type identified by <object>")
+	catFileGetSize := catFileCommand.Bool("s", false,
+		"Instead of the content, show the object size identified by <object>")
+	catFilePrint := catFileCommand.Bool("p", false,
+		"Pretty-print the contents of <object> based on its type.")
 
 	flag.Parse()
 	switch os.Args[1] {
 	case "init":
 		initCommand.Parse(os.Args[2:])
+
+		// Execute the command.
 		cmd_init(*initPath)
+
 	case "hash-object":
 		hashObjectCommand.Parse(os.Args[2:])
-		cmd_hash_object()
+		if hashObjectCommand.NArg() != 1 {
+			hashObjectCommand.Usage()
+			os.Exit(1)
+		}
+
+		// Execute the command.
+		cmd_hash_object(hashObjectCommand.Arg(0), *hashObjectWriteObj)
+
 	case "cat-file":
 		catFileCommand.Parse(os.Args[2:])
-		cmd_cat_file()
+		if catFileCommand.NArg() != 1 {
+			catFileCommand.Usage()
+			os.Exit(1)
+		}
+
+		// Execute the command.
+		cmd_cat_file(catFileCommand.Arg(0), *catFileGetType, *catFileGetSize,
+			*catFilePrint)
+
 	default:
 		Usage()
 		os.Exit(1)
