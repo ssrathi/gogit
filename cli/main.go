@@ -1,16 +1,30 @@
+// CLI entry point for gogit binary.
 package main
 
 import (
 	"flag"
 	"fmt"
+	"gogit"
 	"os"
 )
 
 func cmd_init(repo_path string) {
-	fmt.Printf("Init done at path: %q\n", repo_path)
+	repo, err := gogit.NewRepo(repo_path)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Initialized empty Git repository in %s/\n", repo.GitDir)
 }
 
 func cmd_hash_object() {
+	repo, err := gogit.GetRepo(".")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Printf("Repo found at %q\n", repo.GitDir)
 	fmt.Println("hash-object done")
 }
 
