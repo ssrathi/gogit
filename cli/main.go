@@ -8,47 +8,67 @@ import (
 	"os"
 )
 
-func cmd_init(path string) {
+func cmdInit(path string) {
 	repo, err := gogit.NewRepo(path)
 	gogit.DieOnError(err)
 
 	fmt.Printf("Initialized empty Git repository in %s/\n", repo.GitDir)
 }
 
-func cmd_hash_object(file string, write bool) {
-	var repo *gogit.Repo
-	var err error
-
-	if write {
-		repo, err = gogit.GetRepo(".")
-		gogit.DieOnError(err)
-	}
-
-	obj, err := gogit.NewBlob(repo, file)
+func cmdHashObject(file string, write bool) {
+	repo, err := gogit.GetRepo(".")
 	gogit.DieOnError(err)
 
-	sha1, err := obj.Write(write)
+	blob, err := gogit.NewBlobFromFile(file)
+	gogit.DieOnError(err)
+
+	sha1, err := repo.ObjectWrite(blob.Obj, write)
 	gogit.DieOnError(err)
 
 	fmt.Println(sha1)
 }
 
-func cmd_cat_file(objHash string, getType bool, getSize bool, printObj bool) {
+func cmdCatFile(objHash string, getType bool, getSize bool, printObj bool) {
 	repo, err := gogit.GetRepo(".")
 	gogit.DieOnError(err)
 
-	obj := gogit.NewObject(repo)
-	err = obj.Parse(objHash)
+	obj, err := repo.ObjectParse(objHash)
 	gogit.DieOnError(err)
+
+	var gitType gogit.GitType
+	switch obj.ObjType {
+	case "blob":
+		gitType, err = gogit.NewBlob(obj)
+		gogit.DieOnError(err)
+	case "tree":
+		gitType, err = gogit.NewTree(obj)
+		gogit.DieOnError(err)
+	}
 
 	// Only one of 'printObj', 'getType' and 'getSize' is provided.
 	if printObj {
-		fmt.Print(string(obj.Data))
+		fmt.Print(gitType.Print())
 	} else if getType {
-		fmt.Println(obj.ObjType)
+		fmt.Println(gitType.Type())
 	} else if getSize {
-		fmt.Println(len(obj.Data))
+		fmt.Println(gitType.DataSize())
 	}
+}
+
+func cmdLsTree(objHash string) {
+	repo, err := gogit.GetRepo(".")
+	gogit.DieOnError(err)
+
+	obj, err := repo.ObjectParse(objHash)
+	if err != nil || obj.ObjType != "tree" {
+		fmt.Println("fatal: not a tree object")
+		os.Exit(1)
+	}
+
+	tree, err := gogit.NewTree(obj)
+	gogit.DieOnError(err)
+
+	fmt.Print(tree.Print())
 }
 
 func Usage() {
@@ -71,6 +91,7 @@ func main() {
 	initCommand := flag.NewFlagSet("init", flag.ExitOnError)
 	hashObjectCommand := flag.NewFlagSet("hash-object", flag.ExitOnError)
 	catFileCommand := flag.NewFlagSet("cat-file", flag.ExitOnError)
+	lsTreeCommand := flag.NewFlagSet("ls-tree", flag.ExitOnError)
 
 	// Options for 'init' subcommand
 	initPath := initCommand.String("path", ".", "Path to create the repository")
@@ -93,7 +114,7 @@ func main() {
 		initCommand.Parse(os.Args[2:])
 
 		// Execute the command.
-		cmd_init(*initPath)
+		cmdInit(*initPath)
 
 	case "hash-object":
 		hashObjectCommand.Parse(os.Args[2:])
@@ -103,7 +124,7 @@ func main() {
 		}
 
 		// Execute the command.
-		cmd_hash_object(hashObjectCommand.Arg(0), *hashObjectWriteObj)
+		cmdHashObject(hashObjectCommand.Arg(0), *hashObjectWriteObj)
 
 	case "cat-file":
 		catFileCommand.Parse(os.Args[2:])
@@ -113,8 +134,18 @@ func main() {
 		}
 
 		// Execute the command.
-		cmd_cat_file(catFileCommand.Arg(0), *catFileGetType, *catFileGetSize,
+		cmdCatFile(catFileCommand.Arg(0), *catFileGetType, *catFileGetSize,
 			*catFilePrint)
+
+	case "ls-tree":
+		lsTreeCommand.Parse(os.Args[2:])
+		if lsTreeCommand.NArg() != 1 {
+			lsTreeCommand.Usage()
+			os.Exit(1)
+		}
+
+		// Execute the command.
+		cmdLsTree(lsTreeCommand.Arg(0))
 
 	default:
 		Usage()

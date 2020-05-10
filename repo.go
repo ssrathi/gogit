@@ -1,11 +1,16 @@
 package gogit
 
 import (
+	"bytes"
+	"compress/zlib"
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type Repo struct {
@@ -147,4 +152,77 @@ func (r *Repo) FilePath(create bool, paths ...string) (string, error) {
 	}
 
 	return filepath.Join(dirPath, filename), nil
+}
+
+// Find the data referred by the given sha1 hash and add the data to the
+// object as per "Git" specifications.
+func (r *Repo) ObjectParse(objHash string) (*GitObject, error) {
+	data_file, err := r.FilePath(
+		false, "objects", string(objHash[0:2]), string(objHash[2:]))
+	if err != nil {
+		return nil, err
+	}
+
+	// Read the file data and decompress it.
+	data, err := ioutil.ReadFile(data_file)
+	if err != nil {
+		return nil, err
+	}
+
+	decompressed := bytes.NewBuffer(data)
+	rdr, err := zlib.NewReader(decompressed)
+	if err != nil {
+		return nil, fmt.Errorf("Malformed object %s: bad data", objHash)
+	}
+	data, _ = ioutil.ReadAll(rdr)
+	rdr.Close()
+
+	// Strip the header from the decompressed data.
+	spaceInd := bytes.IndexByte(data, byte(' '))
+	objType := string(data[0:spaceInd])
+	nullInd := bytes.IndexByte(data, byte('\x00'))
+
+	size, err := strconv.Atoi(string(data[spaceInd+1 : nullInd]))
+	if err != nil || len(data)-nullInd-1 != size {
+		return nil, fmt.Errorf("Malformed object %s: bad length", objHash)
+	}
+
+	// Get the header-stripped data.
+	obj := NewObject(objType, data[nullInd+1:])
+	return obj, nil
+}
+
+// Calculate the sha1 of a git object and optionally write it to a file as
+// per "Git" specifications.
+func (r *Repo) ObjectWrite(obj *GitObject, write bool) (string, error) {
+	// Prepare header
+	header := []byte(obj.ObjType + " " + strconv.Itoa(len(obj.ObjData)) + "\x00")
+	data := append(header, obj.ObjData...)
+
+	// Compute sha1 of the bytes.
+	h := sha1.New()
+	h.Write(data)
+	sha1hash := hex.EncodeToString(h.Sum(nil))
+
+	if !write {
+		return sha1hash, nil
+	}
+
+	// Write the compressed data to a path determined by the sha1 hash.
+	var compressed bytes.Buffer
+	w := zlib.NewWriter(&compressed)
+	w.Write(data)
+	w.Close()
+
+	data_file, err := r.FilePath(
+		true, "objects", string(sha1hash[0:2]), string(sha1hash[2:]))
+	if err != nil {
+		return "", err
+	}
+	if err := ioutil.WriteFile(data_file, compressed.Bytes(), 0444); err != nil {
+		return "", err
+	}
+
+	// The data is now written to a file as per Git specification.
+	return sha1hash, nil
 }
