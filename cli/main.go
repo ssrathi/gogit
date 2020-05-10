@@ -5,58 +5,49 @@ import (
 	"flag"
 	"fmt"
 	"gogit"
-	"io/ioutil"
-	"log"
 	"os"
 )
 
-func cmd_init(repo_path string) {
-	repo, err := gogit.NewRepo(repo_path)
-	if err != nil {
-		log.Fatal(err)
-	}
+func cmd_init(path string) {
+	repo, err := gogit.NewRepo(path)
+	gogit.DieOnError(err)
 
 	fmt.Printf("Initialized empty Git repository in %s/\n", repo.GitDir)
 }
 
 func cmd_hash_object(file string, write bool) {
-	repo, err := gogit.GetRepo(".")
-	if err != nil {
-		log.Fatal(err)
+	var repo *gogit.Repo
+	var err error
+
+	if write {
+		repo, err = gogit.GetRepo(".")
+		gogit.DieOnError(err)
 	}
 
-	data, err := ioutil.ReadFile(file)
-	if err != nil {
-		log.Fatal(err)
-	}
+	obj, err := gogit.NewBlob(repo, file)
+	gogit.DieOnError(err)
 
-	blob := gogit.NewBlob(repo, data)
-	sha1, err := blob.Write(write)
-	if err != nil {
-		log.Fatal(err)
-	}
+	sha1, err := obj.Write(write)
+	gogit.DieOnError(err)
 
 	fmt.Println(sha1)
 }
 
 func cmd_cat_file(objHash string, getType bool, getSize bool, printObj bool) {
 	repo, err := gogit.GetRepo(".")
-	if err != nil {
-		log.Fatal(err)
-	}
+	gogit.DieOnError(err)
 
-	blob := gogit.NewBlob(repo, nil)
-	if err := blob.Parse(objHash); err != nil {
-		log.Fatal(err)
-	}
+	obj := gogit.NewObject(repo)
+	err = obj.Parse(objHash)
+	gogit.DieOnError(err)
 
 	// Only one of 'printObj', 'getType' and 'getSize' is provided.
 	if printObj {
-		fmt.Print(string(blob.Data))
+		fmt.Print(string(obj.Data))
 	} else if getType {
-		fmt.Println(blob.ObjType)
+		fmt.Println(obj.ObjType)
 	} else if getSize {
-		fmt.Println(len(blob.Data))
+		fmt.Println(len(obj.Data))
 	}
 }
 

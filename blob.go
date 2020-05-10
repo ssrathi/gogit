@@ -1,10 +1,19 @@
 package gogit
 
+import (
+	"io/ioutil"
+)
+
 type GitBlob struct {
 	GitObject
 }
 
-func NewBlob(repo *Repo, data []byte) *GitBlob {
+func NewBlob(repo *Repo, file string) (*GitBlob, error) {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+
 	blob := GitBlob{
 		GitObject{
 			Repository: repo,
@@ -13,5 +22,5 @@ func NewBlob(repo *Repo, data []byte) *GitBlob {
 		},
 	}
 
-	return &blob
+	return &blob, nil
 }

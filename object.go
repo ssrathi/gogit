@@ -16,6 +16,12 @@ type GitObject struct {
 	Data       []byte
 }
 
+func NewObject(repo *Repo) *GitObject {
+	return &GitObject{
+		Repository: repo,
+	}
+}
+
 // Find the data referred by the given sha1 hash and add the data to the
 // object as per "Git" specifications.
 func (obj *GitObject) Parse(objHash string) error {
