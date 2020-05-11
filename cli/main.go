@@ -89,6 +89,23 @@ func cmdMkTree() {
 	fmt.Println(hash)
 }
 
+func cmdCheckout(objHash string, path string) {
+	repo, err := gogit.GetRepo(".")
+	gogit.DieOnError(err)
+
+	obj, err := repo.ObjectParse(objHash)
+	if err != nil || obj.ObjType != "tree" {
+		fmt.Println("fatal: not a tree object")
+		os.Exit(1)
+	}
+
+	tree, err := gogit.NewTree(obj)
+	gogit.DieOnError(err)
+
+	err = tree.Checkout(path)
+	gogit.DieOnError(err)
+}
+
 func Usage() {
 	fmt.Printf("usage: %s <command> [<args>]\n", os.Args[0])
 	fmt.Println("Valid commands:")
@@ -111,6 +128,7 @@ func main() {
 	catFileCommand := flag.NewFlagSet("cat-file", flag.ExitOnError)
 	lsTreeCommand := flag.NewFlagSet("ls-tree", flag.ExitOnError)
 	mkTreeCommand := flag.NewFlagSet("mktree", flag.ExitOnError)
+	checkoutCommand := flag.NewFlagSet("checkout", flag.ExitOnError)
 
 	// Options for 'init' subcommand
 	initPath := initCommand.String("path", ".", "Path to create the repository")
@@ -126,6 +144,9 @@ func main() {
 		"Instead of the content, show the object size identified by <object>")
 	catFilePrint := catFileCommand.Bool("p", false,
 		"Pretty-print the contents of <object> based on its type.")
+
+	// Options for 'checkout' subcommand
+	checkoutPath := checkoutCommand.String("path", ".", "Path to checkout")
 
 	flag.Parse()
 	switch os.Args[1] {
@@ -171,6 +192,16 @@ func main() {
 
 		// Execute the command.
 		cmdMkTree()
+
+	case "checkout":
+		checkoutCommand.Parse(os.Args[2:])
+		if checkoutCommand.NArg() != 1 {
+			checkoutCommand.Usage()
+			os.Exit(1)
+		}
+
+		// Execute the command.
+		cmdCheckout(checkoutCommand.Arg(0), *checkoutPath)
 
 	default:
 		Usage()

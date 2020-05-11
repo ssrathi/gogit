@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -139,6 +143,54 @@ func (tree *GitTree) ParseData() error {
 	sort.Slice(tree.Entries, func(i, j int) bool {
 		return tree.Entries[i].name < tree.Entries[j].name
 	})
+
+	return nil
+}
+
+func (tree *GitTree) Checkout(path string) error {
+	repo, err := GetRepo(".")
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range tree.Entries {
+		createPath := filepath.Join(path, entry.name)
+		obj, err := repo.ObjectParse(entry.hash)
+		if err != nil {
+			return err
+		}
+
+		if entry.objType == "tree" {
+			// handle a tree object
+			if err := os.Mkdir(createPath, os.ModePerm); err != nil {
+				return err
+			}
+
+			// Recurse on the tree object.
+			tree, err := NewTree(obj)
+			if err != nil {
+				return err
+			}
+
+			err = tree.Checkout(createPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// handle a blob object
+			blob, err := NewBlob(obj)
+			if err != nil {
+				return err
+			}
+
+			// Mode is in the format 100xxx. Strip the 100 from it.
+			mode, _ := strconv.ParseInt(entry.mode[3:], 8, 32)
+			err = ioutil.WriteFile(createPath, blob.Obj.ObjData, os.FileMode(mode))
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	return nil
 }
