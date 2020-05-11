@@ -1,7 +1,7 @@
 # golang_git
 Implementation of git internal commands in Go language.
 
-## Support commands
+## Supported commands
 * `gogit init <path>`
 * `gogit hash-object <file_name>`
 * `gogit cat-file -t|-s|-p <object_hash>`
