@@ -38,6 +38,38 @@ func NewTree(obj *GitObject) (*GitTree, error) {
 	return &tree, nil
 }
 
+// Parse the given string and create a tree from it.
+func NewTreeFromInput(input string) (*GitTree, error) {
+	data := []byte{}
+	entries := strings.Split(input, "\n")
+	for _, entry := range entries {
+		if len(entry) == 0 {
+			continue
+		}
+
+		// Each entry is in the following format.
+		// 100644 blob a1e5680b811ded8762390b94a40643293ee6c1b0<tab>README.md
+		props := strings.Fields(entry)
+
+		// Strip initial 0s from the mode if any.
+		mode := strings.TrimLeft(props[0], "0")
+		data = append(data, []byte(mode)...)
+		data = append(data, byte(' '))
+		data = append(data, []byte(props[3])...)
+		data = append(data, byte('\x00'))
+
+		// Append blob/tree hash as bytes.
+		byteHash, err := hex.DecodeString(props[2])
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, byteHash...)
+	}
+
+	obj := NewObject("tree", data)
+	return NewTree(obj)
+}
+
 func (tree *GitTree) Type() string {
 	return "tree"
 }
@@ -49,8 +81,11 @@ func (tree *GitTree) DataSize() int {
 func (tree *GitTree) Print() string {
 	var b strings.Builder
 	for _, entry := range tree.Entries {
+		// Prepend 0 in front of mode to make it 6 char long.
+		entryMode := strings.Repeat("0", 6-len(entry.mode)) + entry.mode
+
 		fmt.Fprintf(&b, "%s %s %s\t%s\n",
-			entry.mode, entry.objType, entry.hash, entry.name)
+			entryMode, entry.objType, entry.hash, entry.name)
 	}
 
 	return b.String()
@@ -73,9 +108,6 @@ func (tree *GitTree) ParseData() error {
 		if len(entryMode) != 5 && len(entryMode) != 6 {
 			return fmt.Errorf("Malformed object: bad mode %s", entryMode)
 		}
-
-		// Prepend 0 in front of mode to make it 6 char long.
-		entryMode = strings.Repeat("0", 6-len(entryMode)) + entryMode
 
 		// Next get the name/path which has a null char after that.
 		nameInd := bytes.IndexByte(data, byte('\x00'))

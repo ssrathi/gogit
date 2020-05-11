@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"gogit"
+	"io/ioutil"
 	"os"
 )
 
@@ -71,6 +72,23 @@ func cmdLsTree(objHash string) {
 	fmt.Print(tree.Print())
 }
 
+func cmdMkTree() {
+	repo, err := gogit.GetRepo(".")
+	gogit.DieOnError(err)
+
+	input, err := ioutil.ReadAll(os.Stdin)
+	gogit.DieOnError(err)
+
+	tree, err := gogit.NewTreeFromInput(string(input))
+	gogit.DieOnError(err)
+
+	// Write the tree now.
+	hash, err := repo.ObjectWrite(tree.Obj, true)
+	gogit.DieOnError(err)
+
+	fmt.Println(hash)
+}
+
 func Usage() {
 	fmt.Printf("usage: %s <command> [<args>]\n", os.Args[0])
 	fmt.Println("Valid commands:")
@@ -92,6 +110,7 @@ func main() {
 	hashObjectCommand := flag.NewFlagSet("hash-object", flag.ExitOnError)
 	catFileCommand := flag.NewFlagSet("cat-file", flag.ExitOnError)
 	lsTreeCommand := flag.NewFlagSet("ls-tree", flag.ExitOnError)
+	mkTreeCommand := flag.NewFlagSet("mktree", flag.ExitOnError)
 
 	// Options for 'init' subcommand
 	initPath := initCommand.String("path", ".", "Path to create the repository")
@@ -146,6 +165,12 @@ func main() {
 
 		// Execute the command.
 		cmdLsTree(lsTreeCommand.Arg(0))
+
+	case "mktree":
+		mkTreeCommand.Parse(os.Args[2:])
+
+		// Execute the command.
+		cmdMkTree()
 
 	default:
 		Usage()

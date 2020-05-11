@@ -21,10 +21,10 @@ type Repo struct {
 // Used by 'gogit init' to create a fresh repo.
 func NewRepo(path string) (*Repo, error) {
 	path, _ = filepath.Abs(path)
-
-	repo := new(Repo)
-	repo.WorkTree = filepath.Clean(path)
-	repo.GitDir = filepath.Join(repo.WorkTree, ".git")
+	repo := Repo{
+		WorkTree: path,
+		GitDir:   filepath.Join(path, ".git"),
+	}
 
 	// Validate that the WorkTree is either empty or it doesn't exist.
 	if IsDirPresent(repo.WorkTree) {
@@ -75,7 +75,7 @@ func NewRepo(path string) (*Repo, error) {
 	}
 
 	// A fresh repo is now cooked. Return it to the caller.
-	return repo, nil
+	return &repo, nil
 }
 
 // Used by all commands other than "gogit init" to work on an existing repo.
@@ -91,10 +91,11 @@ func GetRepo(path string) (*Repo, error) {
 
 		if isPresent && isDir {
 			// Found the repo.
-			repo := new(Repo)
-			repo.WorkTree = path
-			repo.GitDir = filepath.Join(repo.WorkTree, ".git")
-			return repo, nil
+			repo := Repo{
+				WorkTree: path,
+				GitDir:   filepath.Join(path, ".git"),
+			}
+			return &repo, nil
 		}
 
 		// Find the parent directory of the given path.
