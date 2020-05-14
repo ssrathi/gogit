@@ -1,13 +1,19 @@
-# golang_git
 [![Go Report Card](https://goreportcard.com/badge/github.com/ssrathi/golang_git)](https://goreportcard.com/report/github.com/ssrathi/golang_git)
 [![GoDoc](https://godoc.org/github.com/ssrathi/golang_git?status.svg)](https://godoc.org/github.com/ssrathi/golang_git)
+# golang_git
 
 Implementation of git internal commands in Go language.
 
 ## Supported commands
-* `gogit init <path>`
-* `gogit hash-object <file_name>`
-* `gogit cat-file -t|-s|-p <object_hash>`
-* `gogit ls-tree <tree_hash>`
-* `gogit mktree`
-* `gogit checkout [-path <path>] <tree_hash>`
+```
+gogit - the stupid content tracker
+
+usage: ./gogit <command> [<args>]
+Valid commands:
+  init           Create an empty Git repository
+  hash-object    Compute object ID and optionally creates a blob from a file
+  cat-file       Provide content or type and size information for repository objects
+  ls-tree        List the contents of a tree object
+  mktree         Build a tree-object from ls-tree formatted text
+  cat-file       restore working tree files
+```
