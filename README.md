@@ -15,5 +15,5 @@ Valid commands:
   cat-file       Provide content or type and size information for repository objects
   ls-tree        List the contents of a tree object
   mktree         Build a tree-object from ls-tree formatted text
-  cat-file       restore working tree files
+  checkout       restore working tree files
 ```

@@ -16,7 +16,7 @@ type CheckoutCommand struct {
 
 func NewCheckoutCommand() *CheckoutCommand {
 	cmd := &CheckoutCommand{
-		fs: flag.NewFlagSet("cat-file", flag.ExitOnError),
+		fs: flag.NewFlagSet("checkout", flag.ExitOnError),
 	}
 
 	cmd.fs.StringVar(&cmd.path, "path", ".", "Path to create the files")
