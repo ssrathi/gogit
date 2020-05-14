@@ -9,41 +9,49 @@ import (
 	"os"
 )
 
+// Helper to exit on irrecoverable error.
+func Check(err error) {
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
 func cmdInit(path string) {
 	repo, err := gogit.NewRepo(path)
-	gogit.DieOnError(err)
+	Check(err)
 
 	fmt.Printf("Initialized empty Git repository in %s/\n", repo.GitDir)
 }
 
 func cmdHashObject(file string, write bool) {
 	repo, err := gogit.GetRepo(".")
-	gogit.DieOnError(err)
+	Check(err)
 
 	blob, err := gogit.NewBlobFromFile(file)
-	gogit.DieOnError(err)
+	Check(err)
 
 	sha1, err := repo.ObjectWrite(blob.Obj, write)
-	gogit.DieOnError(err)
+	Check(err)
 
 	fmt.Println(sha1)
 }
 
 func cmdCatFile(objHash string, getType bool, getSize bool, printObj bool) {
 	repo, err := gogit.GetRepo(".")
-	gogit.DieOnError(err)
+	Check(err)
 
 	obj, err := repo.ObjectParse(objHash)
-	gogit.DieOnError(err)
+	Check(err)
 
 	var gitType gogit.GitType
 	switch obj.ObjType {
 	case "blob":
 		gitType, err = gogit.NewBlob(obj)
-		gogit.DieOnError(err)
+		Check(err)
 	case "tree":
 		gitType, err = gogit.NewTree(obj)
-		gogit.DieOnError(err)
+		Check(err)
 	}
 
 	// Only one of 'printObj', 'getType' and 'getSize' is provided.
@@ -58,7 +66,7 @@ func cmdCatFile(objHash string, getType bool, getSize bool, printObj bool) {
 
 func cmdLsTree(objHash string) {
 	repo, err := gogit.GetRepo(".")
-	gogit.DieOnError(err)
+	Check(err)
 
 	obj, err := repo.ObjectParse(objHash)
 	if err != nil || obj.ObjType != "tree" {
@@ -67,31 +75,31 @@ func cmdLsTree(objHash string) {
 	}
 
 	tree, err := gogit.NewTree(obj)
-	gogit.DieOnError(err)
+	Check(err)
 
 	fmt.Print(tree.Print())
 }
 
 func cmdMkTree() {
 	repo, err := gogit.GetRepo(".")
-	gogit.DieOnError(err)
+	Check(err)
 
 	input, err := ioutil.ReadAll(os.Stdin)
-	gogit.DieOnError(err)
+	Check(err)
 
 	tree, err := gogit.NewTreeFromInput(string(input))
-	gogit.DieOnError(err)
+	Check(err)
 
 	// Write the tree now.
 	hash, err := repo.ObjectWrite(tree.Obj, true)
-	gogit.DieOnError(err)
+	Check(err)
 
 	fmt.Println(hash)
 }
 
 func cmdCheckout(objHash string, path string) {
 	repo, err := gogit.GetRepo(".")
-	gogit.DieOnError(err)
+	Check(err)
 
 	obj, err := repo.ObjectParse(objHash)
 	if err != nil || obj.ObjType != "tree" {
@@ -100,10 +108,10 @@ func cmdCheckout(objHash string, path string) {
 	}
 
 	tree, err := gogit.NewTree(obj)
-	gogit.DieOnError(err)
+	Check(err)
 
 	err = tree.Checkout(path)
-	gogit.DieOnError(err)
+	Check(err)
 }
 
 func Usage() {

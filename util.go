@@ -1,18 +1,9 @@
 package gogit
 
 import (
-	"fmt"
 	"io"
 	"os"
 )
-
-// Helper to exit on irrecoverable error.
-func DieOnError(err error) {
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
 
 // Check if given directory is empty or not.
 func IsDirEmpty(path string) (bool, error) {
