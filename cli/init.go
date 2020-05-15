@@ -39,11 +39,6 @@ func (cmd *InitCommand) Usage() {
 	cmd.fs.PrintDefaults()
 }
 
-func (cmd *InitCommand) Validate() error {
-	// There is nothing to validate for 'init' command.
-	return nil
-}
-
 func (cmd *InitCommand) Execute() {
 	repo, err := gogit.NewRepo(cmd.path)
 	Check(err)

@@ -9,8 +9,7 @@ import (
 )
 
 type MkTreeCommand struct {
-	fs      *flag.FlagSet
-	objHash string
+	fs *flag.FlagSet
 }
 
 func NewMkTreeCommand() *MkTreeCommand {
@@ -37,11 +36,6 @@ func (cmd *MkTreeCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
 	fmt.Printf("usage: %s\n", cmd.Name())
 	cmd.fs.PrintDefaults()
-}
-
-func (cmd *MkTreeCommand) Validate() error {
-	// Nothing to validate
-	return nil
 }
 
 func (cmd *MkTreeCommand) Execute() {

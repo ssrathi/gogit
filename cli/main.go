@@ -7,17 +7,16 @@ import (
 	"os"
 )
 
-// Interface that all subcommands must implement.
+// Subcommand is an interface that all subcommands must implement.
 type Subcommand interface {
 	Init([]string) error
 	Name() string
 	Description() string
-	Validate() error
 	Usage()
 	Execute()
 }
 
-// Helper function to exit on irrecoverable error.
+// Check is a helper function to exit on irrecoverable error.
 func Check(err error) {
 	if err != nil {
 		fmt.Println(err)
@@ -39,7 +38,7 @@ func execute(progName string, args []string) {
 
 	// Prepare the global usage message.
 	flag.Usage = func() {
-		fmt.Println("gogit - the stupid content tracker\n")
+		fmt.Printf("gogit - the stupid content tracker\n\n")
 		fmt.Printf("usage: %s <command> [<args>]\n", progName)
 		fmt.Println("Valid commands:")
 
@@ -60,11 +59,8 @@ func execute(progName string, args []string) {
 			continue
 		}
 
-		// Parse the optional arguments.
-		cmd.Init(os.Args[2:])
-
-		// Validate the command specific arguments.
-		if err := cmd.Validate(); err != nil {
+		// Parse and validate the command specific arguments.
+		if err := cmd.Init(os.Args[2:]); err != nil {
 			fmt.Println(err)
 			cmd.Usage()
 			os.Exit(1)
@@ -75,7 +71,7 @@ func execute(progName string, args []string) {
 		return
 	}
 
-	fmt.Errorf("%[1]s: '%s' is not a valid command. See '%[1]s --help'",
+	fmt.Printf("%[1]s: '%s' is not a valid command. See '%[1]s --help'",
 		progName, subcommand)
 	flag.Usage()
 }

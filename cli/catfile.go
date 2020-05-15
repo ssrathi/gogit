@@ -39,16 +39,10 @@ func (cmd *CatFileCommand) Description() string {
 
 func (cmd *CatFileCommand) Init(args []string) error {
 	cmd.fs.Usage = cmd.Usage
-	return cmd.fs.Parse(args)
-}
+	if err := cmd.fs.Parse(args); err != nil {
+		return err
+	}
 
-func (cmd *CatFileCommand) Usage() {
-	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
-	fmt.Printf("usage: %s [<args>] <object>\n", cmd.Name())
-	cmd.fs.PrintDefaults()
-}
-
-func (cmd *CatFileCommand) Validate() error {
 	if cmd.fs.NArg() < 1 {
 		return errors.New("Error: Missing <object> argument\n")
 	}
@@ -66,6 +60,12 @@ func (cmd *CatFileCommand) Validate() error {
 
 	cmd.objHash = cmd.fs.Arg(0)
 	return nil
+}
+
+func (cmd *CatFileCommand) Usage() {
+	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
+	fmt.Printf("usage: %s [<args>] <object>\n", cmd.Name())
+	cmd.fs.PrintDefaults()
 }
 
 func (cmd *CatFileCommand) Execute() {

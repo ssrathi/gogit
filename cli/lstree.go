@@ -26,7 +26,16 @@ func (cmd *LsTreeCommand) Name() string {
 
 func (cmd *LsTreeCommand) Init(args []string) error {
 	cmd.fs.Usage = cmd.Usage
-	return cmd.fs.Parse(args)
+	if err := cmd.fs.Parse(args); err != nil {
+		return err
+	}
+
+	if cmd.fs.NArg() < 1 {
+		return errors.New("Error: Missing <tree-ish> argument\n")
+	}
+
+	cmd.objHash = cmd.fs.Arg(0)
+	return nil
 }
 
 func (cmd *LsTreeCommand) Description() string {
@@ -37,15 +46,6 @@ func (cmd *LsTreeCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
 	fmt.Printf("usage: %s <tree-ish>\n", cmd.Name())
 	cmd.fs.PrintDefaults()
-}
-
-func (cmd *LsTreeCommand) Validate() error {
-	if cmd.fs.NArg() < 1 {
-		return errors.New("Error: Missing <tree-ish> argument\n")
-	}
-
-	cmd.objHash = cmd.fs.Arg(0)
-	return nil
 }
 
 func (cmd *LsTreeCommand) Execute() {
