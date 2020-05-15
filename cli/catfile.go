@@ -83,6 +83,9 @@ func (cmd *CatFileCommand) Execute() {
 	case "tree":
 		gitType, err = gogit.NewTree(obj)
 		Check(err)
+	case "commit":
+		gitType, err = gogit.NewCommit(obj)
+		Check(err)
 	}
 
 	// Only one of 'printObj', 'getType' and 'getSize' is provided.
