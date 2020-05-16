@@ -34,6 +34,8 @@ func execute(progName string, args []string) {
 		NewLsTreeCommand(),
 		NewMkTreeCommand(),
 		NewCheckoutCommand(),
+		NewCommitTreeCommand(),
+		NewLogCommand(),
 	}
 
 	// Prepare the global usage message.

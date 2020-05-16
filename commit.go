@@ -77,6 +77,18 @@ func (commit *GitCommit) DataSize() int {
 	return len(commit.Obj.ObjData)
 }
 
+// TreeHash returns the "tree" object hash inside the given commit object.
+// Each commit object has only one "tree" object inside it.
+func (commit *GitCommit) TreeHash() string {
+	return commit.Entries["tree"][0]
+}
+
+// Parents returns a list of parents of the given commit. If there are no
+// parent (base commit), then it returns an empty list.
+func (commit *GitCommit) Parents() []string {
+	return commit.Entries["parent"]
+}
+
 func (commit *GitCommit) Print() string {
 	var b strings.Builder
 

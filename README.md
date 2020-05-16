@@ -16,4 +16,6 @@ Valid commands:
   ls-tree        List the contents of a tree object
   mktree         Build a tree-object from ls-tree formatted text
   checkout       restore working tree files
+  commit-tree    Create a new commit object
+  log            Shows the commit logs starting with given commit
 ```

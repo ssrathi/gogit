@@ -56,11 +56,24 @@ func (cmd *CheckoutCommand) Execute() {
 	Check(err)
 
 	obj, err := repo.ObjectParse(cmd.objHash)
-	if err != nil || obj.ObjType != "tree" {
+	if err != nil {
+		fmt.Println("fatal: not a tree object.", err)
+		os.Exit(1)
+	}
+	if obj.ObjType != "tree" && obj.ObjType != "commit" {
 		fmt.Println("fatal: not a tree object")
 		os.Exit(1)
 	}
 
+	// If it is a "commit" object, then get its "tree" component first.
+	if obj.ObjType == "commit" {
+		commit, err := gogit.NewCommit(obj)
+		Check(err)
+		obj, err = repo.ObjectParse(commit.TreeHash())
+		Check(err)
+	}
+
+	// "obj" is now a valid tree object.
 	tree, err := gogit.NewTree(obj)
 	Check(err)
 

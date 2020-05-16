@@ -220,7 +220,7 @@ func (r *Repo) ObjectWrite(obj *GitObject, write bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := ioutil.WriteFile(data_file, compressed.Bytes(), 0444); err != nil {
+	if err := ioutil.WriteFile(data_file, compressed.Bytes(), 0664); err != nil {
 		return "", err
 	}
 
