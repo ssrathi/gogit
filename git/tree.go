@@ -1,4 +1,4 @@
-package gogit
+package git
 
 import (
 	"bytes"

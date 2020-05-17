@@ -1,5 +1,5 @@
-// CLI entry point for gogit binary.
-package main
+// Entry point for gogit command line parsing.
+package cmd
 
 import (
 	"flag"
@@ -24,8 +24,8 @@ func Check(err error) {
 	}
 }
 
-// Parse CLI arguments and execute the subcommand.
-func execute(progName string, args []string) {
+// Execute parses CLI arguments and executes the given subcommand.
+func Execute(progName string, args []string) {
 	// Create an object for each subcommand.
 	cmds := []Subcommand{
 		NewInitCommand(),
@@ -48,6 +48,8 @@ func execute(progName string, args []string) {
 			fmt.Printf("  %-14s %s\n", cmd.Name(), cmd.Description())
 		}
 		flag.PrintDefaults()
+		fmt.Printf("\nUse \"%s <command> --help\" for help on a specific "+
+			"command\n", progName)
 	}
 
 	if len(args) < 1 {
@@ -76,8 +78,4 @@ func execute(progName string, args []string) {
 	fmt.Printf("%[1]s: '%s' is not a valid command. See '%[1]s --help'",
 		progName, subcommand)
 	flag.Usage()
-}
-
-func main() {
-	execute(os.Args[0], os.Args[1:])
 }

@@ -1,4 +1,4 @@
-package gogit
+package git
 
 // A common interface shared by all type of git objects.
 type GitType interface {

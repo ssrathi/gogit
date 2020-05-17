@@ -1,11 +1,12 @@
-package main
+package cmd
 
 import (
 	"errors"
 	"flag"
 	"fmt"
-	"gogit"
 	"os"
+
+	"github.com/ssrathi/gogit/git"
 )
 
 type LsTreeCommand struct {
@@ -49,7 +50,7 @@ func (cmd *LsTreeCommand) Usage() {
 }
 
 func (cmd *LsTreeCommand) Execute() {
-	repo, err := gogit.GetRepo(".")
+	repo, err := git.GetRepo(".")
 	Check(err)
 
 	// Resolve the given hash to a full hash.
@@ -68,14 +69,14 @@ func (cmd *LsTreeCommand) Execute() {
 
 	// If it is a "commit" object, then get its "tree" component first.
 	if obj.ObjType == "commit" {
-		commit, err := gogit.NewCommit(obj)
+		commit, err := git.NewCommit(obj)
 		Check(err)
 		obj, err = repo.ObjectParse(commit.TreeHash())
 		Check(err)
 	}
 
 	// "obj" is now a valid tree object.
-	tree, err := gogit.NewTree(obj)
+	tree, err := git.NewTree(obj)
 	Check(err)
 
 	fmt.Print(tree.Print())

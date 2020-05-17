@@ -1,10 +1,11 @@
-package main
+package cmd
 
 import (
 	"flag"
 	"fmt"
-	"gogit"
 	"os"
+
+	"github.com/ssrathi/gogit/git"
 )
 
 type LogCommand struct {
@@ -52,7 +53,7 @@ func (cmd *LogCommand) Usage() {
 }
 
 func (cmd *LogCommand) Execute() {
-	repo, err := gogit.GetRepo(".")
+	repo, err := git.GetRepo(".")
 	Check(err)
 
 	// Resolve the given revision to a full hash.
@@ -68,7 +69,7 @@ func (cmd *LogCommand) Execute() {
 		}
 
 		// Print this commit now.
-		commit, err := gogit.NewCommit(obj)
+		commit, err := git.NewCommit(obj)
 		Check(err)
 		commitStr, err := commit.PrettyPrint()
 		Check(err)
@@ -93,7 +94,7 @@ func (cmd *LogCommand) Execute() {
 			break
 		}
 
-		// Currently, "gogit log" only supports a single parent. In real "git",
+		// Currently, "git log" only supports a single parent. In real "git",
 		// there can be more than one parent in "merge" scenarios.
 		commitHash = parents[0]
 

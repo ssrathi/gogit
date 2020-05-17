@@ -1,4 +1,4 @@
-package gogit
+package util
 
 import (
 	"io"

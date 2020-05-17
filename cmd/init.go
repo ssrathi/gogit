@@ -1,9 +1,10 @@
-package main
+package cmd
 
 import (
 	"flag"
 	"fmt"
-	"gogit"
+
+	"github.com/ssrathi/gogit/git"
 )
 
 type InitCommand struct {
@@ -40,7 +41,7 @@ func (cmd *InitCommand) Usage() {
 }
 
 func (cmd *InitCommand) Execute() {
-	repo, err := gogit.NewRepo(cmd.path)
+	repo, err := git.NewRepo(cmd.path)
 	Check(err)
 
 	fmt.Printf("Initialized empty Git repository in %s/\n", repo.GitDir)

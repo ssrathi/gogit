@@ -1,17 +1,18 @@
-package main
+package cmd
 
 import (
 	"errors"
 	"flag"
 	"fmt"
-	"gogit"
 	"os"
+
+	"github.com/ssrathi/gogit/git"
 )
 
 type CheckoutCommand struct {
-	fs      *flag.FlagSet
-	path    string
-	objHash string
+	fs       *flag.FlagSet
+	path     string
+	revision string
 }
 
 func NewCheckoutCommand() *CheckoutCommand {
@@ -41,7 +42,7 @@ func (cmd *CheckoutCommand) Init(args []string) error {
 		return errors.New("Error: Missing <object> argument\n")
 	}
 
-	cmd.objHash = cmd.fs.Arg(0)
+	cmd.revision = cmd.fs.Arg(0)
 	return nil
 }
 
@@ -52,10 +53,14 @@ func (cmd *CheckoutCommand) Usage() {
 }
 
 func (cmd *CheckoutCommand) Execute() {
-	repo, err := gogit.GetRepo(".")
+	repo, err := git.GetRepo(".")
 	Check(err)
 
-	obj, err := repo.ObjectParse(cmd.objHash)
+	// Resolve the given hash to a full hash.
+	objHash, err := repo.ObjectFind(cmd.revision)
+	Check(err)
+
+	obj, err := repo.ObjectParse(objHash)
 	if err != nil {
 		fmt.Println("fatal: not a tree object.", err)
 		os.Exit(1)
@@ -67,14 +72,14 @@ func (cmd *CheckoutCommand) Execute() {
 
 	// If it is a "commit" object, then get its "tree" component first.
 	if obj.ObjType == "commit" {
-		commit, err := gogit.NewCommit(obj)
+		commit, err := git.NewCommit(obj)
 		Check(err)
 		obj, err = repo.ObjectParse(commit.TreeHash())
 		Check(err)
 	}
 
 	// "obj" is now a valid tree object.
-	tree, err := gogit.NewTree(obj)
+	tree, err := git.NewTree(obj)
 	Check(err)
 
 	err = tree.Checkout(cmd.path)

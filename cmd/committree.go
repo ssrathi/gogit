@@ -1,10 +1,11 @@
-package main
+package cmd
 
 import (
 	"errors"
 	"flag"
 	"fmt"
-	"gogit"
+
+	"github.com/ssrathi/gogit/git"
 )
 
 type CommitTreeCommand struct {
@@ -58,12 +59,12 @@ func (cmd *CommitTreeCommand) Usage() {
 }
 
 func (cmd *CommitTreeCommand) Execute() {
-	repo, err := gogit.GetRepo(".")
+	repo, err := git.GetRepo(".")
 	Check(err)
 
 	// Add a new line to the msg.
 	msg := cmd.msg + "\n"
-	commit, err := gogit.NewCommitFromParams(
+	commit, err := git.NewCommitFromParams(
 		cmd.treeHash, cmd.parentHash, msg)
 	Check(err)
 

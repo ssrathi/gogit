@@ -1,11 +1,12 @@
-package main
+package cmd
 
 import (
 	"flag"
 	"fmt"
-	"gogit"
 	"io/ioutil"
 	"os"
+
+	"github.com/ssrathi/gogit/git"
 )
 
 type MkTreeCommand struct {
@@ -39,13 +40,13 @@ func (cmd *MkTreeCommand) Usage() {
 }
 
 func (cmd *MkTreeCommand) Execute() {
-	repo, err := gogit.GetRepo(".")
+	repo, err := git.GetRepo(".")
 	Check(err)
 
 	input, err := ioutil.ReadAll(os.Stdin)
 	Check(err)
 
-	tree, err := gogit.NewTreeFromInput(string(input))
+	tree, err := git.NewTreeFromInput(string(input))
 	Check(err)
 
 	// Write the tree now.

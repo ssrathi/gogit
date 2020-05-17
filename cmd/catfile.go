@@ -1,10 +1,11 @@
-package main
+package cmd
 
 import (
 	"errors"
 	"flag"
 	"fmt"
-	"gogit"
+
+	"github.com/ssrathi/gogit/git"
 )
 
 type CatFileCommand struct {
@@ -73,7 +74,7 @@ func (cmd *CatFileCommand) Usage() {
 }
 
 func (cmd *CatFileCommand) Execute() {
-	repo, err := gogit.GetRepo(".")
+	repo, err := git.GetRepo(".")
 	Check(err)
 
 	// Resolve the given hash to a full hash.
@@ -83,16 +84,16 @@ func (cmd *CatFileCommand) Execute() {
 	obj, err := repo.ObjectParse(objHash)
 	Check(err)
 
-	var gitType gogit.GitType
+	var gitType git.GitType
 	switch obj.ObjType {
 	case "blob":
-		gitType, err = gogit.NewBlob(obj)
+		gitType, err = git.NewBlob(obj)
 		Check(err)
 	case "tree":
-		gitType, err = gogit.NewTree(obj)
+		gitType, err = git.NewTree(obj)
 		Check(err)
 	case "commit":
-		gitType, err = gogit.NewCommit(obj)
+		gitType, err = git.NewCommit(obj)
 		Check(err)
 	}
 

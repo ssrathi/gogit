@@ -1,10 +1,11 @@
-package main
+package cmd
 
 import (
 	"errors"
 	"flag"
 	"fmt"
-	"gogit"
+
+	"github.com/ssrathi/gogit/git"
 )
 
 type HashObjectCommand struct {
@@ -53,10 +54,10 @@ func (cmd *HashObjectCommand) Usage() {
 }
 
 func (cmd *HashObjectCommand) Execute() {
-	repo, err := gogit.GetRepo(".")
+	repo, err := git.GetRepo(".")
 	Check(err)
 
-	blob, err := gogit.NewBlobFromFile(cmd.file)
+	blob, err := git.NewBlobFromFile(cmd.file)
 	Check(err)
 
 	sha1, err := repo.ObjectWrite(blob.Obj, cmd.write)

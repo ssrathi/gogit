@@ -1,4 +1,4 @@
-package gogit
+package git
 
 import (
 	"bytes"
@@ -13,6 +13,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/ssrathi/gogit/util"
 )
 
 // Repo structure to hold the current repository details.
@@ -30,9 +32,9 @@ func NewRepo(path string) (*Repo, error) {
 	}
 
 	// Validate that the WorkTree is either empty or it doesn't exist.
-	if IsDirPresent(repo.WorkTree) {
+	if util.IsDirPresent(repo.WorkTree) {
 		// Make sure if it empty.
-		empty, _ := IsDirEmpty(repo.WorkTree)
+		empty, _ := util.IsDirEmpty(repo.WorkTree)
 		if !empty {
 			err := fmt.Errorf("Work-tree %q is not empty", repo.WorkTree)
 			return nil, err
@@ -89,8 +91,8 @@ func GetRepo(path string) (*Repo, error) {
 
 		// Check if git directory is present.
 		GitDir := filepath.Join(path, ".git")
-		isPresent := IsDirPresent(GitDir)
-		isDir, _ := IsPathDir(GitDir)
+		isPresent := util.IsDirPresent(GitDir)
+		isDir, _ := util.IsPathDir(GitDir)
 
 		if isPresent && isDir {
 			// Found the repo.
@@ -122,8 +124,8 @@ func (r *Repo) DirPath(create bool, paths ...string) (string, error) {
 	path := filepath.Join(paths...)
 
 	// Make sure the path is a directory.
-	if IsDirPresent(path) {
-		isDir, _ := IsPathDir(path)
+	if util.IsDirPresent(path) {
+		isDir, _ := util.IsPathDir(path)
 		if !isDir {
 			err := fmt.Errorf("Path %q is not a directory", path)
 			return "", err
