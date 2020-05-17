@@ -4,6 +4,10 @@
 
 Implementation of git internal commands in Go language.
 
+This project is part of a learning exercise to implement a subset of "git"
+commands. It can be used to create and maintain git objects, such as blobs,
+trees, commits, branches and tags.
+
 ## Supported commands
 ```
 gogit - the stupid content tracker
