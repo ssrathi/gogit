@@ -14,7 +14,7 @@ type MkTreeCommand struct {
 	fs *flag.FlagSet
 }
 
-// NewCommitTreeCommand creates a new command object.
+// NewMkTreeCommand creates a new command object.
 func NewMkTreeCommand() *MkTreeCommand {
 	cmd := &MkTreeCommand{
 		fs: flag.NewFlagSet("mktree", flag.ExitOnError),

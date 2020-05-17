@@ -15,7 +15,7 @@ type LogCommand struct {
 	revision string
 }
 
-// NewCommitTreeCommand creates a new command object.
+// NewLogCommand creates a new command object.
 func NewLogCommand() *LogCommand {
 	cmd := &LogCommand{
 		fs: flag.NewFlagSet("log", flag.ExitOnError),

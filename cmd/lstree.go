@@ -15,7 +15,7 @@ type LsTreeCommand struct {
 	revision string
 }
 
-// NewCommitTreeCommand creates a new command object.
+// NewLsTreeCommand creates a new command object.
 func NewLsTreeCommand() *LsTreeCommand {
 	cmd := &LsTreeCommand{
 		fs: flag.NewFlagSet("ls-tree", flag.ExitOnError),

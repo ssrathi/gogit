@@ -16,7 +16,7 @@ type CheckoutCommand struct {
 	revision string
 }
 
-// NewCommitTreeCommand creates a new command object.
+// NewCheckoutCommand creates a new command object.
 func NewCheckoutCommand() *CheckoutCommand {
 	cmd := &CheckoutCommand{
 		fs: flag.NewFlagSet("checkout", flag.ExitOnError),

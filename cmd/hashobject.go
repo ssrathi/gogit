@@ -8,14 +8,14 @@ import (
 	"github.com/ssrathi/gogit/git"
 )
 
-// CatFileCommand lists the components of "cat-file" comamnd.
+// HashObjectCommand lists the components of "cat-file" comamnd.
 type HashObjectCommand struct {
 	fs    *flag.FlagSet
 	write bool
 	file  string
 }
 
-// NewCommitTreeCommand creates a new command object.
+// NewHashObjectCommand creates a new command object.
 func NewHashObjectCommand() *HashObjectCommand {
 	cmd := &HashObjectCommand{
 		fs: flag.NewFlagSet("hash-object", flag.ExitOnError),

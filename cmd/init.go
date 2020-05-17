@@ -13,7 +13,7 @@ type InitCommand struct {
 	path string
 }
 
-// NewCommitTreeCommand creates a new command object.
+// NewInitCommand creates a new command object.
 func NewInitCommand() *InitCommand {
 	cmd := &InitCommand{
 		fs: flag.NewFlagSet("init", flag.ExitOnError),
