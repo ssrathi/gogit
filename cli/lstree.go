@@ -52,7 +52,11 @@ func (cmd *LsTreeCommand) Execute() {
 	repo, err := gogit.GetRepo(".")
 	Check(err)
 
-	obj, err := repo.ObjectParse(cmd.objHash)
+	// Resolve the given hash to a full hash.
+	objHash, err := repo.ObjectFind(cmd.objHash)
+	Check(err)
+
+	obj, err := repo.ObjectParse(objHash)
 	if err != nil {
 		fmt.Println("fatal: not a tree object.", err)
 		os.Exit(1)

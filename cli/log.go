@@ -55,7 +55,10 @@ func (cmd *LogCommand) Execute() {
 	repo, err := gogit.GetRepo(".")
 	Check(err)
 
-	commitHash := cmd.commitHash
+	// Resolve the given hash to a full hash.
+	commitHash, err := repo.ObjectFind(cmd.commitHash)
+	Check(err)
+
 	var printed uint
 	for {
 		obj, err := repo.ObjectParse(commitHash)

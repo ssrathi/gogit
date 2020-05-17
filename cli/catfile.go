@@ -48,6 +48,10 @@ func (cmd *CatFileCommand) Init(args []string) error {
 	}
 
 	// All optional boolean args are mutually exclusive
+	if !(cmd.getType || cmd.getSize || cmd.printObj) {
+		return errors.New("Error: one of '-t', '-s' or '-p' must be provided\n")
+	}
+
 	if cmd.getType && cmd.getSize {
 		return errors.New("Error: switch 't' and 's' are incompatible\n")
 	}
@@ -72,7 +76,11 @@ func (cmd *CatFileCommand) Execute() {
 	repo, err := gogit.GetRepo(".")
 	Check(err)
 
-	obj, err := repo.ObjectParse(cmd.objHash)
+	// Resolve the given hash to a full hash.
+	objHash, err := repo.ObjectFind(cmd.objHash)
+	Check(err)
+
+	obj, err := repo.ObjectParse(objHash)
 	Check(err)
 
 	var gitType gogit.GitType
