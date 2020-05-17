@@ -253,12 +253,10 @@ func (r *Repo) RefResolve(ref string) ([]string, error) {
 		return nil, fmt.Errorf(errmsg)
 	}
 
-	// If the hash is smaller than 3, then return an error. "git" doesn't resolve
-	// a hash smaller than 4 characters, but "gogit" supports resoloving a hash
-	// larger than or equal to 2 characters.
-	// NOTE: 2 is chosen so that there are collisions with a small number of
-	//       objects for testing.
-	if len(ref) < 2 {
+	// If the hash is smaller than 4, then return an error. "git" doesn't resolve
+	// a hash smaller than 4 characters.
+	// Also, git hashes are limited to 40 char (SHA1)
+	if len(ref) < 4 || len(ref) > 40 {
 		return nil, fmt.Errorf(errmsg)
 	}
 
