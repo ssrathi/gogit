@@ -329,6 +329,10 @@ func (r *Repo) RefResolve(ref string) ([]string, error) {
 		}
 	}
 
+	if len(matches) == 0 {
+		return nil, fmt.Errorf(errmsg)
+	}
+
 	return matches, nil
 }
 
