@@ -8,7 +8,7 @@ Implementation of git internal commands in Go language.
 ```
 gogit - the stupid content tracker
 
-usage: ./gogit <command> [<args>]
+usage: gogit <command> [<args>]
 Valid commands:
   init           Create an empty Git repository
   hash-object    Compute object ID and optionally creates a blob from a file
@@ -17,5 +17,7 @@ Valid commands:
   mktree         Build a tree-object from ls-tree formatted text
   checkout       restore working tree files
   commit-tree    Create a new commit object
-  log            Shows the commit logs starting with given commit
+  log            Shows the commit logs
+
+Use "gogit <command> --help" for help on a specific command
 ```
