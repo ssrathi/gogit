@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/ssrathi/gogit/git"
+	"github.com/ssrathi/gogit/util"
 )
 
 // CheckoutCommand lists the components of "checkout" comamnd.
@@ -61,11 +62,11 @@ func (cmd *CheckoutCommand) Usage() {
 // Execute runs the given command till completion.
 func (cmd *CheckoutCommand) Execute() {
 	repo, err := git.GetRepo(".")
-	Check(err)
+	util.Check(err)
 
 	// Resolve the given hash to a full hash.
 	objHash, err := repo.ObjectFind(cmd.revision)
-	Check(err)
+	util.Check(err)
 
 	obj, err := repo.ObjectParse(objHash)
 	if err != nil {
@@ -80,15 +81,15 @@ func (cmd *CheckoutCommand) Execute() {
 	// If it is a "commit" object, then get its "tree" component first.
 	if obj.ObjType == "commit" {
 		commit, err := git.NewCommit(obj)
-		Check(err)
+		util.Check(err)
 		obj, err = repo.ObjectParse(commit.TreeHash())
-		Check(err)
+		util.Check(err)
 	}
 
 	// "obj" is now a valid tree object.
 	tree, err := git.NewTree(obj)
-	Check(err)
+	util.Check(err)
 
 	err = tree.Checkout(cmd.path)
-	Check(err)
+	util.Check(err)
 }

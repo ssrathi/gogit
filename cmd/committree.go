@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ssrathi/gogit/git"
+	"github.com/ssrathi/gogit/util"
 )
 
 // CommitTreeCommand lists the components of "commit-tree" comamnd.
@@ -67,17 +68,17 @@ func (cmd *CommitTreeCommand) Usage() {
 // Execute runs the given command till completion.
 func (cmd *CommitTreeCommand) Execute() {
 	repo, err := git.GetRepo(".")
-	Check(err)
+	util.Check(err)
 
 	// Add a new line to the msg.
 	msg := cmd.msg + "\n"
 	commit, err := git.NewCommitFromParams(
 		cmd.treeHash, cmd.parentHash, msg)
-	Check(err)
+	util.Check(err)
 
 	// Write the commit now.
 	hash, err := repo.ObjectWrite(commit.Obj, true)
-	Check(err)
+	util.Check(err)
 
 	fmt.Println(hash)
 }

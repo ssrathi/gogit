@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ssrathi/gogit/git"
+	"github.com/ssrathi/gogit/util"
 )
 
 // HashObjectCommand lists the components of "cat-file" comamnd.
@@ -62,13 +63,13 @@ func (cmd *HashObjectCommand) Usage() {
 // Execute runs the given command till completion.
 func (cmd *HashObjectCommand) Execute() {
 	repo, err := git.GetRepo(".")
-	Check(err)
+	util.Check(err)
 
 	blob, err := git.NewBlobFromFile(cmd.file)
-	Check(err)
+	util.Check(err)
 
 	sha1, err := repo.ObjectWrite(blob.Obj, cmd.write)
-	Check(err)
+	util.Check(err)
 
 	fmt.Println(sha1)
 }

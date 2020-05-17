@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ssrathi/gogit/git"
+	"github.com/ssrathi/gogit/util"
 )
 
 // InitCommand lists the components of "init" comamnd.
@@ -49,7 +50,7 @@ func (cmd *InitCommand) Usage() {
 // Execute runs the given command till completion.
 func (cmd *InitCommand) Execute() {
 	repo, err := git.NewRepo(cmd.path)
-	Check(err)
+	util.Check(err)
 
 	fmt.Printf("Initialized empty Git repository in %s/\n", repo.GitDir)
 }

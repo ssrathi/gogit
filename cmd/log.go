@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ssrathi/gogit/git"
+	"github.com/ssrathi/gogit/util"
 )
 
 // LogCommand lists the components of "log" comamnd.
@@ -61,11 +62,11 @@ func (cmd *LogCommand) Usage() {
 // Execute runs the given command till completion.
 func (cmd *LogCommand) Execute() {
 	repo, err := git.GetRepo(".")
-	Check(err)
+	util.Check(err)
 
 	// Resolve the given revision to a full hash.
 	commitHash, err := repo.ObjectFind(cmd.revision)
-	Check(err)
+	util.Check(err)
 
 	var printed uint
 	for {
@@ -77,9 +78,9 @@ func (cmd *LogCommand) Execute() {
 
 		// Print this commit now.
 		commit, err := git.NewCommit(obj)
-		Check(err)
+		util.Check(err)
 		commitStr, err := commit.PrettyPrint()
-		Check(err)
+		util.Check(err)
 
 		// Print the commit msg now. If it doesn't end with a newline, then
 		// add one manually.

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/ssrathi/gogit/git"
+	"github.com/ssrathi/gogit/util"
 )
 
 // MkTreeCommand lists the components of "mktree" comamnd.
@@ -48,17 +49,17 @@ func (cmd *MkTreeCommand) Usage() {
 // Execute runs the given command till completion.
 func (cmd *MkTreeCommand) Execute() {
 	repo, err := git.GetRepo(".")
-	Check(err)
+	util.Check(err)
 
 	input, err := ioutil.ReadAll(os.Stdin)
-	Check(err)
+	util.Check(err)
 
 	tree, err := git.NewTreeFromInput(string(input))
-	Check(err)
+	util.Check(err)
 
 	// Write the tree now.
 	hash, err := repo.ObjectWrite(tree.Obj, true)
-	Check(err)
+	util.Check(err)
 
 	fmt.Println(hash)
 }

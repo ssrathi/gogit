@@ -1,3 +1,4 @@
+// Package git implements internal git objects and related APIs.
 package git
 
 import (

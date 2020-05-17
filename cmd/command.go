@@ -16,14 +16,6 @@ type Subcommand interface {
 	Execute()
 }
 
-// Check is a helper function to exit on irrecoverable error.
-func Check(err error) {
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
-
 // Execute parses CLI arguments and executes the given subcommand.
 func Execute() {
 	progName := os.Args[0]

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ssrathi/gogit/git"
+	"github.com/ssrathi/gogit/util"
 )
 
 // CatFileCommand lists the components of "cat-file" comamnd.
@@ -82,26 +83,26 @@ func (cmd *CatFileCommand) Usage() {
 // Execute runs the given command till completion.
 func (cmd *CatFileCommand) Execute() {
 	repo, err := git.GetRepo(".")
-	Check(err)
+	util.Check(err)
 
 	// Resolve the given hash to a full hash.
 	objHash, err := repo.ObjectFind(cmd.revision)
-	Check(err)
+	util.Check(err)
 
 	obj, err := repo.ObjectParse(objHash)
-	Check(err)
+	util.Check(err)
 
 	var gitType git.GitType
 	switch obj.ObjType {
 	case "blob":
 		gitType, err = git.NewBlob(obj)
-		Check(err)
+		util.Check(err)
 	case "tree":
 		gitType, err = git.NewTree(obj)
-		Check(err)
+		util.Check(err)
 	case "commit":
 		gitType, err = git.NewCommit(obj)
-		Check(err)
+		util.Check(err)
 	}
 
 	// Only one of 'printObj', 'getType' and 'getSize' is provided.

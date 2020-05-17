@@ -1,9 +1,19 @@
+// Package util implements miscellaneous utility APIs.
 package util
 
 import (
+	"fmt"
 	"io"
 	"os"
 )
+
+// Check is a helper function to exit on irrecoverable error.
+func Check(err error) {
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
 
 // IsDirEmpty checks if given directory is empty or not.
 func IsDirEmpty(path string) (bool, error) {
