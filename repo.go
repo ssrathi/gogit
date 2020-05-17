@@ -227,7 +227,7 @@ func (r *Repo) ObjectWrite(obj *GitObject, write bool) (string, error) {
 		return "", err
 	}
 
-	// The data is now written to a file as per Git specification.
+	// The data is now successfully written to a file as per Git specification.
 	return sha1hash, nil
 }
 
@@ -242,13 +242,54 @@ func (r *Repo) RefResolve(ref string) ([]string, error) {
 	errmsg := fmt.Sprintf("fatal: ambiguous argument '%s': unknown revision or "+
 		"path not in the working tree", ref)
 
+	ref = strings.TrimSpace(ref)
 	if ref == "" {
 		// Can't do much if nothing is given!
 		return nil, fmt.Errorf(errmsg)
 	}
 
+	// If HEAD is given, then read the reference inside first.
+	if ref == "HEAD" {
+		headFile, _ := r.FilePath(false, "HEAD")
+		data, err := ioutil.ReadFile(headFile)
+		if err != nil {
+			return nil, err
+		}
+
+		ref = string(data)
+		ref = strings.TrimSuffix(ref, "\n")
+		ref = ref[5:]
+	}
+
+	// If it is a symblic ref, then resolve it by reading the reference files.
+	// A symbolic reference is in the format "refs/heads/master".
+	for {
+		refFile, err := r.FilePath(false, ref)
+		if err != nil {
+			// Not a symbolic reference if some path of this file is not present
+			break
+		}
+
+		data, err := ioutil.ReadFile(refFile)
+		if err != nil {
+			// Not a symbolic reference if its file is not present
+			break
+		}
+
+		ref = string(data)
+		ref = strings.TrimSuffix(ref, "\n")
+
+		if !strings.HasPrefix(ref, "ref: ") {
+			// It is not a symblic reference.
+			break
+		}
+
+		// Resovle the new reference again, till a hash is found.
+		ref = ref[5:]
+	}
+
 	// Check if the given ref is a valid hexadecimal hash.
-	re := regexp.MustCompile(`[a-fA-F0-9]$`)
+	re := regexp.MustCompile(`^[a-fA-F0-9]*$`)
 	if !re.MatchString(ref) {
 		return nil, fmt.Errorf(errmsg)
 	}

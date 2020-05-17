@@ -9,8 +9,8 @@ import (
 )
 
 type LsTreeCommand struct {
-	fs      *flag.FlagSet
-	objHash string
+	fs       *flag.FlagSet
+	revision string
 }
 
 func NewLsTreeCommand() *LsTreeCommand {
@@ -34,7 +34,7 @@ func (cmd *LsTreeCommand) Init(args []string) error {
 		return errors.New("Error: Missing <tree-ish> argument\n")
 	}
 
-	cmd.objHash = cmd.fs.Arg(0)
+	cmd.revision = cmd.fs.Arg(0)
 	return nil
 }
 
@@ -53,7 +53,7 @@ func (cmd *LsTreeCommand) Execute() {
 	Check(err)
 
 	// Resolve the given hash to a full hash.
-	objHash, err := repo.ObjectFind(cmd.objHash)
+	objHash, err := repo.ObjectFind(cmd.revision)
 	Check(err)
 
 	obj, err := repo.ObjectParse(objHash)

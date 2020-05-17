@@ -9,7 +9,7 @@ import (
 
 type CatFileCommand struct {
 	fs       *flag.FlagSet
-	objHash  string
+	revision string
 	getType  bool
 	getSize  bool
 	printObj bool
@@ -62,7 +62,7 @@ func (cmd *CatFileCommand) Init(args []string) error {
 		return errors.New("Error: switch 'p' and 't' are incompatible\n")
 	}
 
-	cmd.objHash = cmd.fs.Arg(0)
+	cmd.revision = cmd.fs.Arg(0)
 	return nil
 }
 
@@ -77,7 +77,7 @@ func (cmd *CatFileCommand) Execute() {
 	Check(err)
 
 	// Resolve the given hash to a full hash.
-	objHash, err := repo.ObjectFind(cmd.objHash)
+	objHash, err := repo.ObjectFind(cmd.revision)
 	Check(err)
 
 	obj, err := repo.ObjectParse(objHash)

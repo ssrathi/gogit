@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"gogit"
@@ -9,9 +8,9 @@ import (
 )
 
 type LogCommand struct {
-	fs         *flag.FlagSet
-	limit      uint
-	commitHash string
+	fs       *flag.FlagSet
+	limit    uint
+	revision string
 }
 
 func NewLogCommand() *LogCommand {
@@ -34,20 +33,21 @@ func (cmd *LogCommand) Init(args []string) error {
 	}
 
 	if cmd.fs.NArg() < 1 {
-		return errors.New("Error: Missing <commit-hash> argument\n")
+		cmd.revision = "HEAD"
+	} else {
+		cmd.revision = cmd.fs.Arg(0)
 	}
 
-	cmd.commitHash = cmd.fs.Arg(0)
 	return nil
 }
 
 func (cmd *LogCommand) Description() string {
-	return "Shows the commit logs starting with given commit"
+	return "Shows the commit logs"
 }
 
 func (cmd *LogCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
-	fmt.Printf("usage: %s [<args>] <commit-hash>\n", cmd.Name())
+	fmt.Printf("usage: %s [<args>] [<revision>]\n", cmd.Name())
 	cmd.fs.PrintDefaults()
 }
 
@@ -55,22 +55,30 @@ func (cmd *LogCommand) Execute() {
 	repo, err := gogit.GetRepo(".")
 	Check(err)
 
-	// Resolve the given hash to a full hash.
-	commitHash, err := repo.ObjectFind(cmd.commitHash)
+	// Resolve the given revision to a full hash.
+	commitHash, err := repo.ObjectFind(cmd.revision)
 	Check(err)
 
 	var printed uint
 	for {
 		obj, err := repo.ObjectParse(commitHash)
 		if err != nil || obj.ObjType != "commit" {
-			fmt.Println("fatal: not a commit object.")
+			fmt.Printf("fatal: not a commit object (%s)\n", commitHash)
 			os.Exit(1)
 		}
 
 		// Print this commit now.
 		commit, err := gogit.NewCommit(obj)
 		Check(err)
-		fmt.Println(commit.Print())
+		commitStr, err := commit.PrettyPrint()
+		Check(err)
+
+		// Print the commit msg now. If it doesn't end with a newline, then
+		// add one manually.
+		fmt.Printf(commitStr)
+		if commitStr[len(commitStr)-1] != byte('\n') {
+			fmt.Println()
+		}
 
 		// See if the user specified limit is reached.
 		printed += 1
@@ -80,7 +88,6 @@ func (cmd *LogCommand) Execute() {
 
 		// Find the parent list of this commit.
 		parents := commit.Parents()
-
 		// If there are no more parents (base commit), then stop.
 		if len(parents) == 0 {
 			break
@@ -89,5 +96,8 @@ func (cmd *LogCommand) Execute() {
 		// Currently, "gogit log" only supports a single parent. In real "git",
 		// there can be more than one parent in "merge" scenarios.
 		commitHash = parents[0]
+
+		// Put a new line between two successive commits.
+		fmt.Println()
 	}
 }

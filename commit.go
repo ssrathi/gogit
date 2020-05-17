@@ -105,6 +105,53 @@ func (commit *GitCommit) Print() string {
 	return b.String()
 }
 
+// PrettyPrint prints a commit object in a human readable format, similar to
+// what is shown by "git log" output.
+func (commit *GitCommit) PrettyPrint() (string, error) {
+	var b strings.Builder
+
+	// Find the commit hash of this commit object first.
+	repo, err := GetRepo(".")
+	if err != nil {
+		return "", err
+	}
+	commitHash, _ := repo.ObjectWrite(commit.Obj, false)
+
+	// Print the needed key-values in "git log" format.
+	fmt.Fprintf(&b, "commit %s\n", commitHash)
+	authorEntry := commit.Entries["author"][0]
+	// Author line is in the following format:
+	// "<name1 name2 ...> <email> <epoch seconds> <timezone>"
+	// Example: "Shyamsunder Rathi <sxxxxxx@gmail.com> 1589619289 -0700"
+	items := strings.Fields(authorEntry)
+	timezone := items[len(items)-1]
+	epoch, _ := strconv.ParseInt(items[len(items)-2], 10, 64)
+	epochTime := time.Unix(epoch, 0)
+	// "git" time format in logs: "Sat May 16 19:26:38 2020 -0700"
+	timeStr := epochTime.Format("Mon Jan 02 15:04:05 2006")
+
+	email := items[len(items)-3]
+	author := strings.Join(items[:len(items)-3], " ")
+	fmt.Fprintf(&b, "Author: %s %s\n", author, email)
+	fmt.Fprintf(&b, "Date:   %s %s\n", timeStr, timezone)
+
+	// Print a blank line followed by the commit message.
+	fmt.Fprintln(&b)
+
+	// Message is printed with 4 lines indentation in each line.
+	msgParts := strings.Split(commit.Msg, "\n")
+	for i, msg := range msgParts {
+		if len(msg) != 0 {
+			fmt.Fprintf(&b, "    %s", msg)
+		}
+		if i != len(msgParts)-1 {
+			fmt.Fprintln(&b)
+		}
+	}
+
+	return b.String(), nil
+}
+
 // ParseData parses a commit object's bytes and prepares a dictionary of its
 // components.
 func (commit *GitCommit) ParseData() error {
@@ -128,7 +175,7 @@ func (commit *GitCommit) ParseData() error {
 		// If the space is at first place, then it is part of the last value.
 		// If the space is somewhere else, then it is a key-value pair.
 		// Once a blank line is found, remaining lines are part of commit msg.
-		if newLenInd < spaceInd {
+		if spaceInd < 0 || newLenInd < spaceInd {
 			// Blank line, so remaining data is part of the commit msg.
 			commit.Msg = string(data[1:])
 			break
@@ -139,9 +186,9 @@ func (commit *GitCommit) ParseData() error {
 
 		// The value can be single line or multi line.
 		// Multi-line values have a space as the first character.
-		var end int
+		end := -1
 		for {
-			end = bytes.IndexByte(data, byte('\n'))
+			end += bytes.IndexByte(data[end+1:], byte('\n')) + 1
 			if data[end+1] != byte(' ') {
 				// This is not a continuation line, so stop!
 				break
