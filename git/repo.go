@@ -54,28 +54,28 @@ func NewRepo(path string) (*Repo, error) {
 	// Create needed files under the .git directory.
 	description := []byte("Unnamed repository; edit this file 'description' " +
 		"to name the repository.\n")
-	desc_file, _ := repo.FilePath(true, "description")
-	if err := ioutil.WriteFile(desc_file, description, 0644); err != nil {
+	descFile, _ := repo.FilePath(true, "description")
+	if err := ioutil.WriteFile(descFile, description, 0644); err != nil {
 		return nil, err
 	}
 
 	// HEAD file to point to the master branch initially.
-	head_ref := []byte("ref: refs/heads/master\n")
-	head_file, _ := repo.FilePath(true, "HEAD")
-	if err := ioutil.WriteFile(head_file, head_ref, 0644); err != nil {
+	headRef := []byte("ref: refs/heads/master\n")
+	headFile, _ := repo.FilePath(true, "HEAD")
+	if err := ioutil.WriteFile(headFile, headRef, 0644); err != nil {
 		return nil, err
 	}
 
 	// Write the default git configuration file. We only support few needed
 	// configuration options.
 	// NOTE: Go doesn't have a native ini parser. So create it manually.
-	default_config := []byte(
+	defaultConfig := []byte(
 		"[core]\n" +
 			"\trepositoryformatversion = 0\n" +
 			"\tbare = false\n" +
 			"\tfilemode = false\n")
-	config_file, _ := repo.FilePath(true, "config")
-	if err := ioutil.WriteFile(config_file, default_config, 0644); err != nil {
+	configFile, _ := repo.FilePath(true, "config")
+	if err := ioutil.WriteFile(configFile, defaultConfig, 0644); err != nil {
 		return nil, err
 	}
 
@@ -163,14 +163,14 @@ func (r *Repo) FilePath(create bool, paths ...string) (string, error) {
 // ObjectParse finds the data referred by the given sha1 hash and add the data to the
 // object as per "Git" specifications.
 func (r *Repo) ObjectParse(objHash string) (*GitObject, error) {
-	data_file, err := r.FilePath(
+	dataFile, err := r.FilePath(
 		false, "objects", string(objHash[0:2]), string(objHash[2:]))
 	if err != nil {
 		return nil, err
 	}
 
 	// Read the file data and decompress it.
-	data, err := ioutil.ReadFile(data_file)
+	data, err := ioutil.ReadFile(dataFile)
 	if err != nil {
 		return nil, err
 	}
@@ -220,12 +220,12 @@ func (r *Repo) ObjectWrite(obj *GitObject, write bool) (string, error) {
 	w.Write(data)
 	w.Close()
 
-	data_file, err := r.FilePath(
+	dataFile, err := r.FilePath(
 		true, "objects", string(sha1hash[0:2]), string(sha1hash[2:]))
 	if err != nil {
 		return "", err
 	}
-	if err := ioutil.WriteFile(data_file, compressed.Bytes(), 0664); err != nil {
+	if err := ioutil.WriteFile(dataFile, compressed.Bytes(), 0664); err != nil {
 		return "", err
 	}
 
@@ -237,9 +237,9 @@ func (r *Repo) ObjectWrite(obj *GitObject, write bool) (string, error) {
 // a valid git object hash.
 // Useful to:
 //   - Convert a short hash to a list of matching full size hashes.
-//   - TODO: Convert a symbolic, head or tag reference to a list of matching
-//           full size hashes.
-//   - TODO: Convert a symblic reference to a commit hash (Such as HEAD)
+//   - Convert a symbolic, head or tag reference to a list of matching
+//     full size hashes.
+//   - Convert a symblic reference to a commit hash (Such as HEAD)
 func (r *Repo) RefResolve(ref string) ([]string, error) {
 	errmsg := fmt.Sprintf("fatal: ambiguous argument '%s': unknown revision or "+
 		"path not in the working tree", ref)
@@ -286,7 +286,7 @@ func (r *Repo) RefResolve(ref string) ([]string, error) {
 			break
 		}
 
-		// Resovle the new reference again, till a hash is found.
+		// Resolve the new reference again, till a hash is found.
 		ref = ref[5:]
 	}
 

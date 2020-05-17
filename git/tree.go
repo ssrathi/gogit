@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// TreeEntry is a struct holding components of a tree object.
 type TreeEntry struct {
 	mode    string
 	hash    string
@@ -19,11 +20,13 @@ type TreeEntry struct {
 	name    string
 }
 
+// GitTree is a object with a list of "tree" entries and a git object.
 type GitTree struct {
 	Obj     *GitObject
 	Entries []TreeEntry
 }
 
+// NewTree creates a new tree object by parsing a GitObject.
 func NewTree(obj *GitObject) (*GitTree, error) {
 	if obj.ObjType != "tree" {
 		return nil, fmt.Errorf("Malformed object: bad type %s", obj.ObjType)
@@ -42,7 +45,7 @@ func NewTree(obj *GitObject) (*GitTree, error) {
 	return &tree, nil
 }
 
-// Parse the given string and create a tree from it.
+// NewTreeFromInput parses the given string and create a tree from it.
 func NewTreeFromInput(input string) (*GitTree, error) {
 	data := []byte{}
 	entries := strings.Split(input, "\n")
@@ -74,14 +77,17 @@ func NewTreeFromInput(input string) (*GitTree, error) {
 	return NewTree(obj)
 }
 
+// Type returns the type string of a tree object.
 func (tree *GitTree) Type() string {
 	return "tree"
 }
 
+// DataSize returns the size of the data of a tree object.
 func (tree *GitTree) DataSize() int {
 	return len(tree.Obj.ObjData)
 }
 
+// Print returns a string representation of a tree object.
 func (tree *GitTree) Print() string {
 	var b strings.Builder
 	for _, entry := range tree.Entries {
@@ -95,6 +101,7 @@ func (tree *GitTree) Print() string {
 	return b.String()
 }
 
+// ParseData parses a tree object's bytes and prepares a list of its components.
 func (tree *GitTree) ParseData() error {
 	repo, err := GetRepo(".")
 	if err != nil {
@@ -147,6 +154,8 @@ func (tree *GitTree) ParseData() error {
 	return nil
 }
 
+// Checkout recreates an entire worktree in a given path by recursively reading
+// the blobs and trees inside this tree object.
 func (tree *GitTree) Checkout(path string) error {
 	repo, err := GetRepo(".")
 	if err != nil {

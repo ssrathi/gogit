@@ -9,11 +9,13 @@ import (
 	"github.com/ssrathi/gogit/git"
 )
 
+// LsTreeCommand lists the components of "lstree" comamnd.
 type LsTreeCommand struct {
 	fs       *flag.FlagSet
 	revision string
 }
 
+// NewCommitTreeCommand creates a new command object.
 func NewLsTreeCommand() *LsTreeCommand {
 	cmd := &LsTreeCommand{
 		fs: flag.NewFlagSet("ls-tree", flag.ExitOnError),
@@ -21,10 +23,12 @@ func NewLsTreeCommand() *LsTreeCommand {
 	return cmd
 }
 
+// Name gives the name of the command.
 func (cmd *LsTreeCommand) Name() string {
 	return cmd.fs.Name()
 }
 
+// Init initializes and validates the given command.
 func (cmd *LsTreeCommand) Init(args []string) error {
 	cmd.fs.Usage = cmd.Usage
 	if err := cmd.fs.Parse(args); err != nil {
@@ -39,16 +43,19 @@ func (cmd *LsTreeCommand) Init(args []string) error {
 	return nil
 }
 
+// Description gives the description of the command.
 func (cmd *LsTreeCommand) Description() string {
 	return "List the contents of a tree object"
 }
 
+// Usage prints the usage string for the end user.
 func (cmd *LsTreeCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
 	fmt.Printf("usage: %s <tree-ish>\n", cmd.Name())
 	cmd.fs.PrintDefaults()
 }
 
+// Execute runs the given command till completion.
 func (cmd *LsTreeCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	Check(err)

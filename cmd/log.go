@@ -8,12 +8,14 @@ import (
 	"github.com/ssrathi/gogit/git"
 )
 
+// LogCommand lists the components of "log" comamnd.
 type LogCommand struct {
 	fs       *flag.FlagSet
 	limit    uint
 	revision string
 }
 
+// NewCommitTreeCommand creates a new command object.
 func NewLogCommand() *LogCommand {
 	cmd := &LogCommand{
 		fs: flag.NewFlagSet("log", flag.ExitOnError),
@@ -23,10 +25,12 @@ func NewLogCommand() *LogCommand {
 	return cmd
 }
 
+// Name gives the name of the command.
 func (cmd *LogCommand) Name() string {
 	return cmd.fs.Name()
 }
 
+// Init initializes and validates the given command.
 func (cmd *LogCommand) Init(args []string) error {
 	cmd.fs.Usage = cmd.Usage
 	if err := cmd.fs.Parse(args); err != nil {
@@ -42,16 +46,19 @@ func (cmd *LogCommand) Init(args []string) error {
 	return nil
 }
 
+// Description gives the description of the command.
 func (cmd *LogCommand) Description() string {
 	return "Shows the commit logs"
 }
 
+// Usage prints the usage string for the end user.
 func (cmd *LogCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
 	fmt.Printf("usage: %s [<args>] [<revision>]\n", cmd.Name())
 	cmd.fs.PrintDefaults()
 }
 
+// Execute runs the given command till completion.
 func (cmd *LogCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	Check(err)

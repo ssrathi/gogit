@@ -8,6 +8,7 @@ import (
 	"github.com/ssrathi/gogit/git"
 )
 
+// CommitTreeCommand lists the components of "commit-tree" comamnd.
 type CommitTreeCommand struct {
 	fs         *flag.FlagSet
 	treeHash   string
@@ -15,6 +16,7 @@ type CommitTreeCommand struct {
 	msg        string
 }
 
+// NewCommitTreeCommand creates a new command object.
 func NewCommitTreeCommand() *CommitTreeCommand {
 	cmd := &CommitTreeCommand{
 		fs: flag.NewFlagSet("commit-tree", flag.ExitOnError),
@@ -25,10 +27,12 @@ func NewCommitTreeCommand() *CommitTreeCommand {
 	return cmd
 }
 
+// Name gives the name of the command.
 func (cmd *CommitTreeCommand) Name() string {
 	return cmd.fs.Name()
 }
 
+// Init initializes and validates the given command.
 func (cmd *CommitTreeCommand) Init(args []string) error {
 	cmd.fs.Usage = cmd.Usage
 	if err := cmd.fs.Parse(args); err != nil {
@@ -48,16 +52,19 @@ func (cmd *CommitTreeCommand) Init(args []string) error {
 	return nil
 }
 
+// Description gives the description of the command.
 func (cmd *CommitTreeCommand) Description() string {
 	return "Create a new commit object"
 }
 
+// Usage prints the usage string for the end user.
 func (cmd *CommitTreeCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
 	fmt.Printf("usage: %s [<args>] <tree>\n", cmd.Name())
 	cmd.fs.PrintDefaults()
 }
 
+// Execute runs the given command till completion.
 func (cmd *CommitTreeCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	Check(err)

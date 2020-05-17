@@ -8,6 +8,7 @@ import (
 	"github.com/ssrathi/gogit/git"
 )
 
+// CatFileCommand lists the components of "cat-file" comamnd.
 type CatFileCommand struct {
 	fs       *flag.FlagSet
 	revision string
@@ -16,6 +17,7 @@ type CatFileCommand struct {
 	printObj bool
 }
 
+// NewCatFileCommand creates a new command object.
 func NewCatFileCommand() *CatFileCommand {
 	cmd := &CatFileCommand{
 		fs: flag.NewFlagSet("cat-file", flag.ExitOnError),
@@ -30,14 +32,17 @@ func NewCatFileCommand() *CatFileCommand {
 	return cmd
 }
 
+// Name gives the name of the command.
 func (cmd *CatFileCommand) Name() string {
 	return cmd.fs.Name()
 }
 
+// Description gives the description of the command.
 func (cmd *CatFileCommand) Description() string {
 	return "Provide content or type and size information for repository objects"
 }
 
+// Init initializes and validates the given command.
 func (cmd *CatFileCommand) Init(args []string) error {
 	cmd.fs.Usage = cmd.Usage
 	if err := cmd.fs.Parse(args); err != nil {
@@ -67,12 +72,14 @@ func (cmd *CatFileCommand) Init(args []string) error {
 	return nil
 }
 
+// Usage prints the usage string for the end user.
 func (cmd *CatFileCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
 	fmt.Printf("usage: %s [<args>] <object>\n", cmd.Name())
 	cmd.fs.PrintDefaults()
 }
 
+// Execute runs the given command till completion.
 func (cmd *CatFileCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	Check(err)

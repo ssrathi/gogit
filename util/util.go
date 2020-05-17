@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// Check if given directory is empty or not.
+// IsDirEmpty checks if given directory is empty or not.
 func IsDirEmpty(path string) (bool, error) {
 	fd, err := os.Open(path)
 	if err != nil {
@@ -22,7 +22,7 @@ func IsDirEmpty(path string) (bool, error) {
 	return false, nil
 }
 
-// Check if given directory exists.
+// IsDirPresent checks if given directory exists.
 func IsDirPresent(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
@@ -31,7 +31,7 @@ func IsDirPresent(path string) bool {
 	return true
 }
 
-// Check if given path is a directory (not a file).
+// IsPathDir checks if given path is a directory (not a file).
 func IsPathDir(path string) (bool, error) {
 	fInfo, err := os.Stat(path)
 	if err != nil {

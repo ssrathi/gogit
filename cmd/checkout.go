@@ -9,12 +9,14 @@ import (
 	"github.com/ssrathi/gogit/git"
 )
 
+// CheckoutCommand lists the components of "checkout" comamnd.
 type CheckoutCommand struct {
 	fs       *flag.FlagSet
 	path     string
 	revision string
 }
 
+// NewCommitTreeCommand creates a new command object.
 func NewCheckoutCommand() *CheckoutCommand {
 	cmd := &CheckoutCommand{
 		fs: flag.NewFlagSet("checkout", flag.ExitOnError),
@@ -24,14 +26,17 @@ func NewCheckoutCommand() *CheckoutCommand {
 	return cmd
 }
 
+// Name gives the name of the command.
 func (cmd *CheckoutCommand) Name() string {
 	return cmd.fs.Name()
 }
 
+// Description gives the description of the command.
 func (cmd *CheckoutCommand) Description() string {
 	return "restore working tree files"
 }
 
+// Init initializes and validates the given command.
 func (cmd *CheckoutCommand) Init(args []string) error {
 	cmd.fs.Usage = cmd.Usage
 	if err := cmd.fs.Parse(args); err != nil {
@@ -46,12 +51,14 @@ func (cmd *CheckoutCommand) Init(args []string) error {
 	return nil
 }
 
+// Usage prints the usage string for the end user.
 func (cmd *CheckoutCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
 	fmt.Printf("usage: %s [<args>] <object>\n", cmd.Name())
 	cmd.fs.PrintDefaults()
 }
 
+// Execute runs the given command till completion.
 func (cmd *CheckoutCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	Check(err)

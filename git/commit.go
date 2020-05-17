@@ -9,12 +9,15 @@ import (
 )
 
 const (
-	AUTHOR_NAME  string = "Shyamsunder Rathi"
+	// AUTHOR_NAME is tbe name of the author used as part of metadata of a commit.
+	AUTHOR_NAME string = "Shyamsunder Rathi"
+	// AUTHOR_EMAIL is the email of the author used as part of metadata of a commit.
 	AUTHOR_EMAIL string = "sxxxxxx@gmail.com"
 )
 
 type entryMap map[string][]string
 
+// GitCommit is a object with a map of "commit" entries, commit msg and a git object.
 type GitCommit struct {
 	Obj     *GitObject
 	Entries entryMap
@@ -23,6 +26,7 @@ type GitCommit struct {
 	Msg  string
 }
 
+// NewCommit creates a new commit object by parsing a GitObject.
 func NewCommit(obj *GitObject) (*GitCommit, error) {
 	if obj.ObjType != "commit" {
 		return nil, fmt.Errorf("Malformed object: bad type %s", obj.ObjType)
@@ -69,10 +73,12 @@ func NewCommitFromParams(treeHash, parentHash, msg string) (*GitCommit, error) {
 	return NewCommit(obj)
 }
 
+// Type returns the type string of a commit object.
 func (commit *GitCommit) Type() string {
 	return "commit"
 }
 
+// DataSize returns the size of the data of a commit object.
 func (commit *GitCommit) DataSize() int {
 	return len(commit.Obj.ObjData)
 }
@@ -89,6 +95,7 @@ func (commit *GitCommit) Parents() []string {
 	return commit.Entries["parent"]
 }
 
+// Print returns a string representation of a commit object.
 func (commit *GitCommit) Print() string {
 	var b strings.Builder
 

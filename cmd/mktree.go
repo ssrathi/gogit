@@ -9,10 +9,12 @@ import (
 	"github.com/ssrathi/gogit/git"
 )
 
+// MkTreeCommand lists the components of "mktree" comamnd.
 type MkTreeCommand struct {
 	fs *flag.FlagSet
 }
 
+// NewCommitTreeCommand creates a new command object.
 func NewMkTreeCommand() *MkTreeCommand {
 	cmd := &MkTreeCommand{
 		fs: flag.NewFlagSet("mktree", flag.ExitOnError),
@@ -20,25 +22,30 @@ func NewMkTreeCommand() *MkTreeCommand {
 	return cmd
 }
 
+// Name gives the name of the command.
 func (cmd *MkTreeCommand) Name() string {
 	return cmd.fs.Name()
 }
 
+// Description gives the description of the command.
 func (cmd *MkTreeCommand) Description() string {
 	return "Build a tree-object from ls-tree formatted text"
 }
 
+// Init initializes and validates the given command.
 func (cmd *MkTreeCommand) Init(args []string) error {
 	cmd.fs.Usage = cmd.Usage
 	return cmd.fs.Parse(args)
 }
 
+// Usage prints the usage string for the end user.
 func (cmd *MkTreeCommand) Usage() {
 	fmt.Printf("%s - %s\n", cmd.Name(), cmd.Description())
 	fmt.Printf("usage: %s\n", cmd.Name())
 	cmd.fs.PrintDefaults()
 }
 
+// Execute runs the given command till completion.
 func (cmd *MkTreeCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	Check(err)

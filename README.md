@@ -1,6 +1,6 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/ssrathi/golang_git)](https://goreportcard.com/report/github.com/ssrathi/golang_git)
-[![GoDoc](https://godoc.org/github.com/ssrathi/golang_git?status.svg)](https://godoc.org/github.com/ssrathi/golang_git)
-# golang_git
+[![Go Report Card](https://goreportcard.com/badge/github.com/ssrathi/gogit)](https://goreportcard.com/report/github.com/ssrathi/gogit)
+[![GoDoc](https://godoc.org/github.com/ssrathi/gogit?status.svg)](https://godoc.org/github.com/ssrathi/gogit)
+# gogit
 
 Implementation of git internal commands in Go language.
 

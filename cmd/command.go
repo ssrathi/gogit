@@ -1,4 +1,4 @@
-// Entry point for gogit command line parsing.
+// Package cmd is the entry point for gogit command line parsing.
 package cmd
 
 import (
@@ -25,7 +25,10 @@ func Check(err error) {
 }
 
 // Execute parses CLI arguments and executes the given subcommand.
-func Execute(progName string, args []string) {
+func Execute() {
+	progName := os.Args[0]
+	args := os.Args[1:]
+
 	// Create an object for each subcommand.
 	cmds := []Subcommand{
 		NewInitCommand(),
@@ -57,14 +60,14 @@ func Execute(progName string, args []string) {
 		return
 	}
 
-	subcommand := os.Args[1]
+	subcommand := args[0]
 	for _, cmd := range cmds {
 		if cmd.Name() != subcommand {
 			continue
 		}
 
 		// Parse and validate the command specific arguments.
-		if err := cmd.Init(os.Args[2:]); err != nil {
+		if err := cmd.Init(args[1:]); err != nil {
 			fmt.Println(err)
 			cmd.Usage()
 			os.Exit(1)
