@@ -4,6 +4,7 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -47,6 +48,7 @@ func Execute() {
 			"command\n", progName)
 	}
 
+	flag.Parse()
 	if len(args) < 1 {
 		flag.Usage()
 		return
@@ -66,11 +68,11 @@ func Execute() {
 		}
 
 		// Execute this command.
+		log.Println("Executing command:", cmd.Name())
 		cmd.Execute()
 		return
 	}
 
-	fmt.Printf("%[1]s: '%s' is not a valid command. See '%[1]s --help'",
+	fmt.Printf("%[1]s: '%s' is not a valid command. See '%[1]s --help'.\n",
 		progName, subcommand)
-	flag.Usage()
 }

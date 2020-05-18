@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -33,6 +34,7 @@ func NewRepo(path string) (*Repo, error) {
 	}
 
 	// Validate that the WorkTree is either empty or it doesn't exist.
+	log.Printf("Creating an empty git repo at path: %q\n", path)
 	if util.IsDirPresent(repo.WorkTree) {
 		// Make sure if it empty.
 		empty, _ := util.IsDirEmpty(repo.WorkTree)
