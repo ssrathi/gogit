@@ -3,6 +3,7 @@ package git
 import (
 	"bytes"
 	"fmt"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -125,7 +126,13 @@ func (commit *GitCommit) PrettyPrint() (string, error) {
 	commitHash, _ := repo.ObjectWrite(commit.Obj, false)
 
 	// Print the needed key-values in "git log" format.
-	fmt.Fprintf(&b, "commit %s\n", commitHash)
+	// On Bash and similar, git prints the commit hash in Yellow color.
+	// TODO: Move color coding to a util API.
+	if runtime.GOOS != "windows" {
+		fmt.Fprintf(&b, "\033[33m"+"commit %s\n"+"\033[0m", commitHash)
+	} else {
+		fmt.Fprintf(&b, "commit %s\n", commitHash)
+	}
 	authorEntry := commit.Entries["author"][0]
 	// Author line is in the following format:
 	// "<name1 name2 ...> <email> <epoch seconds> <timezone>"
