@@ -8,7 +8,7 @@ This project is part of a learning exercise to implement a subset of "git"
 commands. It can be used to create and maintain git objects, such as blobs,
 trees, commits, branches and tags.
 
-[![asciicast](https://asciinema.org/a/331278.svg)](https://asciinema.org/a/331278?speed=2)
+[<img src="https://asciinema.org/a/331278.svg" alt="demo" width="400" height="240"/>](https://asciinema.org/a/331278?speed=2&autoplay=1&t=8)
 
 ## Supported commands
 ```
