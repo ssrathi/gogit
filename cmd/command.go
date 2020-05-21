@@ -33,6 +33,7 @@ func Execute() {
 		NewCommitTreeCommand(),
 		NewLogCommand(),
 		NewShowRefCommand(),
+		NewRevParseCommand(),
 	}
 
 	// Prepare the global usage message.
