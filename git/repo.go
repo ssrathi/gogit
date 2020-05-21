@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -23,6 +24,12 @@ import (
 type Repo struct {
 	GitDir   string
 	WorkTree string
+}
+
+// RefEntry keeps a mapping of a reference object with its associated reference.
+type RefEntry struct {
+	Name    string
+	RefHash string
 }
 
 // NewRepo is used by 'gogit init' to create a fresh repo.
@@ -357,4 +364,85 @@ func (r *Repo) ObjectFind(ref string) (string, error) {
 	}
 
 	return matches[0], nil
+}
+
+// ValidateRef strictly validates if a given reference is a valid reference
+// in the local repository (or is HEAD). Returns the resolved object hash.
+func (r *Repo) ValidateRef(ref string) (string, error) {
+	msg := "fatal: '{%s}' - not a valid ref"
+	if ref != "HEAD" && !strings.HasPrefix(ref, "refs") {
+		return "", fmt.Errorf(msg, ref)
+	}
+
+	refHash, err := r.ObjectFind(ref)
+	if err != nil {
+		log.Println(err)
+		return "", fmt.Errorf(msg, ref)
+	}
+
+	return refHash, nil
+}
+
+// GetRefs gets all the references inside the .git directory. This can be
+// used by commands such as "gogit show-ref".
+func (r *Repo) GetRefs(Pattern string, getHead bool) ([]RefEntry, error) {
+	// Read all files inside .git/refs and collect them in a list.
+	// If 'Pattern' is given, then filter out all other files.
+	// If 'getHead' is given, then get .git/HEAD as well.
+	refDir, err := r.DirPath(false, "refs")
+	if err != nil {
+		return nil, err
+	}
+
+	refs := []RefEntry{}
+	// Walk function to travese through everything under .git/refs directory.
+	var walkFunc = func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			log.Printf("Error in accessing path %s (%v)\n", path, err)
+			return walkErr
+		}
+
+		if !info.IsDir() {
+			if Pattern == "" || Pattern == info.Name() {
+				// Get the relative path from the .git directory.
+				ref := strings.TrimPrefix(path, (r.GitDir)+"/")
+				refHash, err := r.ObjectFind(ref)
+				if err != nil {
+					return err
+				}
+
+				refs = append(refs, RefEntry{ref, refHash})
+			}
+		}
+
+		return nil
+	}
+
+	err = filepath.Walk(refDir, walkFunc)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get HEAD ref if asked for
+	if getHead {
+		headFile, err := r.FilePath(false, "HEAD")
+		if err != nil {
+			return nil, err
+		}
+
+		// Get the relative path from the .git directory.
+		ref := strings.TrimPrefix(headFile, (r.GitDir)+"/")
+		refHash, err := r.ObjectFind(ref)
+		if err != nil {
+			return nil, err
+		}
+
+		refs = append(refs, RefEntry{ref, refHash})
+	}
+
+	// Sort the entries (git keeps them sorted for display)
+	sort.Slice(refs, func(i, j int) bool {
+		return refs[i].Name < refs[j].Name
+	})
+	return refs, nil
 }

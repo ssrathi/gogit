@@ -32,6 +32,7 @@ func Execute() {
 		NewCheckoutCommand(),
 		NewCommitTreeCommand(),
 		NewLogCommand(),
+		NewShowRefCommand(),
 	}
 
 	// Prepare the global usage message.
@@ -63,7 +64,7 @@ func Execute() {
 		// Parse and validate the command specific arguments.
 		if err := cmd.Init(args[1:]); err != nil {
 			fmt.Println(err)
-			cmd.Usage()
+			fmt.Printf("See \"%s %s --help\".\n", progName, subcommand)
 			os.Exit(1)
 		}
 

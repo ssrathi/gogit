@@ -7,12 +7,9 @@ trees, commits, branches and tags.
 
 Code Organization
 
-- "git": internal git objects and related APIs.
-
-- "cmd": Command line parsing and execution.
-
-- "util": Miscellaneous utility APIs.
-
+ - "git": internal git objects and related APIs.
+ - "cmd": Command line parsing and execution.
+ - "util": Miscellaneous utility APIs.
 */
 package main
 

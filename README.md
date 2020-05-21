@@ -27,6 +27,7 @@ Valid commands:
   checkout       restore working tree files
   commit-tree    Create a new commit object
   log            Shows the commit logs
+  show-ref       List references in a local repository
 
 Use "gogit <command> --help" for help on a specific command
 ```

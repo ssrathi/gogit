@@ -34,7 +34,7 @@ func (cmd *CheckoutCommand) Name() string {
 
 // Description gives the description of the command.
 func (cmd *CheckoutCommand) Description() string {
-	return "restore working tree files"
+	return "Restore working tree files"
 }
 
 // Init initializes and validates the given command.
