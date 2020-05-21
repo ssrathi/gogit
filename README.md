@@ -30,3 +30,8 @@ Valid commands:
 
 Use "gogit <command> --help" for help on a specific command
 ```
+
+## Installation
+```
+go get github.com/ssrathi/gogit
+```
