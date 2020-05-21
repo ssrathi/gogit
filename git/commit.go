@@ -20,23 +20,25 @@ type entryMap map[string][]string
 
 // GitCommit is a object with a map of "commit" entries, commit msg and a git object.
 type GitCommit struct {
-	Obj     *GitObject
-	Entries entryMap
+	Repository *Repo
+	Obj        *GitObject
+	Entries    entryMap
 	// Keep the keys to maintain the insertion order.
 	Keys []string
 	Msg  string
 }
 
 // NewCommit creates a new commit object by parsing a GitObject.
-func NewCommit(obj *GitObject) (*GitCommit, error) {
+func NewCommit(repo *Repo, obj *GitObject) (*GitCommit, error) {
 	if obj.ObjType != "commit" {
 		return nil, fmt.Errorf("Malformed object: bad type %s", obj.ObjType)
 	}
 
 	commit := GitCommit{
-		Obj:     obj,
-		Entries: entryMap{},
-		Keys:    []string{},
+		Repository: repo,
+		Obj:        obj,
+		Entries:    entryMap{},
+		Keys:       []string{},
 	}
 
 	// Parse the tree data.
@@ -50,7 +52,7 @@ func NewCommit(obj *GitObject) (*GitCommit, error) {
 // NewCommitFromParams builds a commit object using a 'tree' and optionall a
 // 'parent' hash, and a given commit message.
 // This can be used by CLI commands such as "gogit commit-tree".
-func NewCommitFromParams(treeHash, parentHash, msg string) (*GitCommit, error) {
+func NewCommitFromParams(repo *Repo, treeHash, parentHash, msg string) (*GitCommit, error) {
 	data := []byte{}
 	data = append(data, []byte("tree "+treeHash+"\n")...)
 	if parentHash != "" {
@@ -71,7 +73,7 @@ func NewCommitFromParams(treeHash, parentHash, msg string) (*GitCommit, error) {
 	data = append(data, []byte(msg)...)
 
 	obj := NewObject("commit", data)
-	return NewCommit(obj)
+	return NewCommit(repo, obj)
 }
 
 // Type returns the type string of a commit object.
@@ -119,11 +121,7 @@ func (commit *GitCommit) PrettyPrint() (string, error) {
 	var b strings.Builder
 
 	// Find the commit hash of this commit object first.
-	repo, err := GetRepo(".")
-	if err != nil {
-		return "", err
-	}
-	commitHash, _ := repo.ObjectWrite(commit.Obj, false)
+	commitHash, _ := commit.Repository.ObjectWrite(commit.Obj, false)
 
 	// Print the needed key-values in "git log" format.
 	// On Bash and similar, git prints the commit hash in Yellow color.

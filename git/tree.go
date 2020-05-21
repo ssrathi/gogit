@@ -22,19 +22,21 @@ type TreeEntry struct {
 
 // GitTree is a object with a list of "tree" entries and a git object.
 type GitTree struct {
-	Obj     *GitObject
-	Entries []TreeEntry
+	Repository *Repo
+	Obj        *GitObject
+	Entries    []TreeEntry
 }
 
 // NewTree creates a new tree object by parsing a GitObject.
-func NewTree(obj *GitObject) (*GitTree, error) {
+func NewTree(repo *Repo, obj *GitObject) (*GitTree, error) {
 	if obj.ObjType != "tree" {
 		return nil, fmt.Errorf("Malformed object: bad type %s", obj.ObjType)
 	}
 
 	tree := GitTree{
-		Obj:     obj,
-		Entries: []TreeEntry{},
+		Repository: repo,
+		Obj:        obj,
+		Entries:    []TreeEntry{},
 	}
 
 	// Parse the tree data.
@@ -46,7 +48,7 @@ func NewTree(obj *GitObject) (*GitTree, error) {
 }
 
 // NewTreeFromInput parses the given string and create a tree from it.
-func NewTreeFromInput(input string) (*GitTree, error) {
+func NewTreeFromInput(repo *Repo, input string) (*GitTree, error) {
 	data := []byte{}
 	entries := strings.Split(input, "\n")
 	for _, entry := range entries {
@@ -74,7 +76,7 @@ func NewTreeFromInput(input string) (*GitTree, error) {
 	}
 
 	obj := NewObject("tree", data)
-	return NewTree(obj)
+	return NewTree(repo, obj)
 }
 
 // Type returns the type string of a tree object.
@@ -103,11 +105,6 @@ func (tree *GitTree) Print() string {
 
 // ParseData parses a tree object's bytes and prepares a list of its components.
 func (tree *GitTree) ParseData() error {
-	repo, err := GetRepo(".")
-	if err != nil {
-		return err
-	}
-
 	datalen := len(tree.Obj.ObjData)
 	for start := 0; start < datalen; {
 		// First get the mode which has a space after that.
@@ -128,7 +125,7 @@ func (tree *GitTree) ParseData() error {
 		entryHash := hex.EncodeToString(data[nameInd+1 : nameInd+21])
 
 		// Get the type of each hash for printing.
-		obj, err := repo.ObjectParse(entryHash)
+		obj, err := tree.Repository.ObjectParse(entryHash)
 		if err != nil {
 			return err
 		}
@@ -157,14 +154,9 @@ func (tree *GitTree) ParseData() error {
 // Checkout recreates an entire worktree in a given path by recursively reading
 // the blobs and trees inside this tree object.
 func (tree *GitTree) Checkout(path string) error {
-	repo, err := GetRepo(".")
-	if err != nil {
-		return err
-	}
-
 	for _, entry := range tree.Entries {
 		createPath := filepath.Join(path, entry.name)
-		obj, err := repo.ObjectParse(entry.hash)
+		obj, err := tree.Repository.ObjectParse(entry.hash)
 		if err != nil {
 			return err
 		}
@@ -176,7 +168,7 @@ func (tree *GitTree) Checkout(path string) error {
 			}
 
 			// Recurse on the tree object.
-			tree, err := NewTree(obj)
+			tree, err := NewTree(tree.Repository, obj)
 			if err != nil {
 				return err
 			}
@@ -187,7 +179,7 @@ func (tree *GitTree) Checkout(path string) error {
 			}
 		} else {
 			// handle a blob object
-			blob, err := NewBlob(obj)
+			blob, err := NewBlob(tree.Repository, obj)
 			if err != nil {
 				return err
 			}

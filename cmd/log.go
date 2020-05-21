@@ -77,7 +77,7 @@ func (cmd *LogCommand) Execute() {
 		}
 
 		// Print this commit now.
-		commit, err := git.NewCommit(obj)
+		commit, err := git.NewCommit(repo, obj)
 		util.Check(err)
 		commitStr, err := commit.PrettyPrint()
 		util.Check(err)

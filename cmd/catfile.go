@@ -95,13 +95,13 @@ func (cmd *CatFileCommand) Execute() {
 	var gitType git.GitType
 	switch obj.ObjType {
 	case "blob":
-		gitType, err = git.NewBlob(obj)
+		gitType, err = git.NewBlob(repo, obj)
 		util.Check(err)
 	case "tree":
-		gitType, err = git.NewTree(obj)
+		gitType, err = git.NewTree(repo, obj)
 		util.Check(err)
 	case "commit":
-		gitType, err = git.NewCommit(obj)
+		gitType, err = git.NewCommit(repo, obj)
 		util.Check(err)
 	}
 

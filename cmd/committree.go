@@ -73,7 +73,7 @@ func (cmd *CommitTreeCommand) Execute() {
 	// Add a new line to the msg.
 	msg := cmd.msg + "\n"
 	commit, err := git.NewCommitFromParams(
-		cmd.treeHash, cmd.parentHash, msg)
+		repo, cmd.treeHash, cmd.parentHash, msg)
 	util.Check(err)
 
 	// Write the commit now.

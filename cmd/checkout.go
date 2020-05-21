@@ -80,14 +80,14 @@ func (cmd *CheckoutCommand) Execute() {
 
 	// If it is a "commit" object, then get its "tree" component first.
 	if obj.ObjType == "commit" {
-		commit, err := git.NewCommit(obj)
+		commit, err := git.NewCommit(repo, obj)
 		util.Check(err)
 		obj, err = repo.ObjectParse(commit.TreeHash())
 		util.Check(err)
 	}
 
 	// "obj" is now a valid tree object.
-	tree, err := git.NewTree(obj)
+	tree, err := git.NewTree(repo, obj)
 	util.Check(err)
 
 	err = tree.Checkout(cmd.path)

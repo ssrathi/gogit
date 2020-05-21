@@ -7,30 +7,33 @@ import (
 
 // GitBlob is a git object to represent the data of a single file.
 type GitBlob struct {
-	Obj *GitObject
+	Repository *Repo
+	Obj        *GitObject
 }
 
 // NewBlob creates a new blob object by parsing a GitObject.
-func NewBlob(obj *GitObject) (*GitBlob, error) {
+func NewBlob(repo *Repo, obj *GitObject) (*GitBlob, error) {
 	if obj.ObjType != "blob" {
 		return nil, fmt.Errorf("Malformed object: bad type %s", obj.ObjType)
 	}
 
 	blob := GitBlob{
-		Obj: obj,
+		Repository: repo,
+		Obj:        obj,
 	}
 	return &blob, nil
 }
 
 // NewBlobFromFile creates a new blob object by reading data from a file.
-func NewBlobFromFile(file string) (*GitBlob, error) {
+func NewBlobFromFile(repo *Repo, file string) (*GitBlob, error) {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
 	blob := GitBlob{
-		Obj: NewObject("blob", data),
+		Repository: repo,
+		Obj:        NewObject("blob", data),
 	}
 	return &blob, nil
 }

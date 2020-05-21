@@ -54,7 +54,7 @@ func (cmd *MkTreeCommand) Execute() {
 	input, err := ioutil.ReadAll(os.Stdin)
 	util.Check(err)
 
-	tree, err := git.NewTreeFromInput(string(input))
+	tree, err := git.NewTreeFromInput(repo, string(input))
 	util.Check(err)
 
 	// Write the tree now.

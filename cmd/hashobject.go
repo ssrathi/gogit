@@ -65,7 +65,7 @@ func (cmd *HashObjectCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	util.Check(err)
 
-	blob, err := git.NewBlobFromFile(cmd.file)
+	blob, err := git.NewBlobFromFile(repo, cmd.file)
 	util.Check(err)
 
 	sha1, err := repo.ObjectWrite(blob.Obj, cmd.write)
