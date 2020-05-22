@@ -65,7 +65,7 @@ func (cmd *LogCommand) Execute() {
 	util.Check(err)
 
 	// Resolve the given revision to a full hash.
-	commitHash, err := repo.ObjectFind(cmd.revision)
+	commitHash, err := repo.UniqueNameResolve(cmd.revision)
 	util.Check(err)
 
 	var printed uint

@@ -60,8 +60,8 @@ func (cmd *RevParseCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	util.Check(err)
 
-	// Resolve the given hash to a full hash.
-	objHash, err := repo.ObjectFind(cmd.revision)
+	// Resolve the given name to a full hash.
+	objHash, err := repo.UniqueNameResolve(cmd.revision)
 	util.Check(err)
 
 	fmt.Println(objHash)

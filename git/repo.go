@@ -243,149 +243,37 @@ func (r *Repo) ObjectWrite(obj *GitObject, write bool) (string, error) {
 	return sha1hash, nil
 }
 
-// RefResolve resolves a given reference string to an equivalent hash which is
-// a valid git object hash.
-// Useful to:
-//   - Convert a short hash to a list of matching full size hashes.
-//   - Convert a symbolic, head or tag reference to a list of matching
-//     full size hashes.
-//   - Convert a symblic reference to a commit hash (Such as HEAD)
-func (r *Repo) RefResolve(ref string) ([]string, error) {
-	errmsg := fmt.Sprintf("fatal: ambiguous argument '%s': unknown revision or "+
-		"path not in the working tree", ref)
-
-	ref = strings.TrimSpace(ref)
-	if ref == "" {
-		// Can't do much if nothing is given!
-		return nil, fmt.Errorf(errmsg)
-	}
-
-	// If HEAD is given, then read the reference inside first.
-	if ref == "HEAD" {
-		headFile, _ := r.FilePath(false, "HEAD")
-		data, err := ioutil.ReadFile(headFile)
-		if err != nil {
-			return nil, err
-		}
-
-		ref = string(data)
-		ref = strings.TrimSuffix(ref, "\n")
-		ref = ref[5:]
-	}
-
-	// If it is a symblic ref, then resolve it by reading the reference files.
-	// A symbolic reference is in the format "refs/heads/master".
+// RefResolve converts a symbolic reference to its object hash.
+func (r *Repo) RefResolve(path string) (string, error) {
 	for {
-		refFile, err := r.FilePath(false, ref)
+		refFile, err := r.FilePath(false, path)
 		if err != nil {
 			// Not a symbolic reference if some path of this file is not present
-			break
+			return "", err
 		}
 
 		data, err := ioutil.ReadFile(refFile)
 		if err != nil {
 			// Not a symbolic reference if its file is not present
-			break
+			return "", err
 		}
 
-		ref = string(data)
+		ref := string(data)
 		ref = strings.TrimSuffix(ref, "\n")
 
 		if !strings.HasPrefix(ref, "ref: ") {
 			// It is not a symblic reference.
-			break
+			return ref, nil
 		}
 
 		// Resolve the new reference again, till a hash is found.
-		ref = ref[5:]
+		path = ref[5:]
 	}
-
-	// Check if the given ref is a valid hexadecimal hash.
-	re := regexp.MustCompile(`^[a-fA-F0-9]*$`)
-	if !re.MatchString(ref) {
-		return nil, fmt.Errorf(errmsg)
-	}
-
-	// If the hash is smaller than 4, then return an error. "git" doesn't resolve
-	// a hash smaller than 4 characters.
-	// Also, git hashes are limited to 40 char (SHA1)
-	if len(ref) < 4 || len(ref) > 40 {
-		return nil, fmt.Errorf(errmsg)
-	}
-
-	// If the hash is given in full size, then return it as is.
-	if len(ref) == 40 {
-		return []string{ref}, nil
-	}
-
-	// There are possibly more than one matches. Collect them in a list by
-	// looking at matching files under .git/objects directory.
-	objectsPath, err := r.DirPath(true, "objects", ref[0:2])
-	if err != nil {
-		return nil, err
-	}
-
-	// Read all files under this directory and collect all files matching the
-	// remaining hash (after first 2 char).
-	files, err := ioutil.ReadDir(objectsPath)
-	if err != nil {
-		return nil, err
-	}
-
-	matches := []string{}
-	for _, file := range files {
-		if strings.HasPrefix(file.Name(), ref[2:]) {
-			matches = append(matches, ref[0:2]+file.Name())
-		}
-	}
-
-	if len(matches) == 0 {
-		return nil, fmt.Errorf(errmsg)
-	}
-
-	return matches, nil
-}
-
-// ObjectFind resolves a given reference to a single unambiguous hash.
-// The object must match the given type.
-func (r *Repo) ObjectFind(ref string) (string, error) {
-	matches, err := r.RefResolve(ref)
-	if err != nil {
-		return "", err
-	}
-
-	// If there are more than one matches, then prepare an error with all the
-	// matches.
-	if len(matches) > 1 {
-		msg := fmt.Sprintf("short SHA1 %s is ambiguous\n"+
-			"Matching SHA1 list:\n"+
-			"%s", ref, strings.Join(matches, "\n"))
-		return "", fmt.Errorf(msg)
-	}
-
-	return matches[0], nil
-}
-
-// ValidateRef strictly validates if a given reference is a valid reference
-// in the local repository (or is HEAD). Returns the resolved object hash.
-func (r *Repo) ValidateRef(ref string) (string, error) {
-	msg := "fatal: '{%s}' - not a valid ref"
-	if ref != "HEAD" && !strings.HasPrefix(ref, "refs") {
-		return "", fmt.Errorf(msg, ref)
-	}
-
-	refHash, err := r.ObjectFind(ref)
-	if err != nil {
-		log.Println(err)
-		return "", fmt.Errorf(msg, ref)
-	}
-
-	return refHash, nil
 }
 
 // GetRefs gets all the references inside the .git directory. This can be
 // used by commands such as "gogit show-ref".
-func (r *Repo) GetRefs(Pattern string, getHead bool) ([]RefEntry, error) {
+func (r *Repo) GetRefs(pattern string, getHead bool) ([]RefEntry, error) {
 	// Read all files inside .git/refs and collect them in a list.
 	// If 'Pattern' is given, then filter out all other files.
 	// If 'getHead' is given, then get .git/HEAD as well.
@@ -403,16 +291,36 @@ func (r *Repo) GetRefs(Pattern string, getHead bool) ([]RefEntry, error) {
 		}
 
 		if !info.IsDir() {
-			if Pattern == "" || Pattern == info.Name() {
-				// Get the relative path from the .git directory.
-				ref := strings.TrimPrefix(path, (r.GitDir)+"/")
-				refHash, err := r.ObjectFind(ref)
-				if err != nil {
-					return err
+			// Get the relative path from the .git directory.
+			ref := strings.TrimPrefix(path, (r.GitDir)+"/")
+			log.Printf("Working on ref: %s\n", ref)
+
+			if pattern != "" {
+				if !strings.HasSuffix(ref, pattern) {
+					// Given pattern is not applicable to this reference.
+					log.Printf("ref %s doesn't end on pattern %s", ref, pattern)
+					return nil
 				}
 
-				refs = append(refs, RefEntry{ref, refHash})
+				// Find the starting point of the pattern.
+				li := strings.LastIndex(ref, pattern)
+				if li != 0 && ref[li-1] != byte('/') {
+					// Given pattern doesn't match this reference.
+					log.Printf("ref %s doesn't have a separator at index %d\n", ref, li-1)
+					return nil
+				}
 			}
+
+			// This is a valid reference. It either matched the pattern or
+			// a pattern is not provided.
+			// Get the relative path from the .git directory.
+			log.Printf("Found %s as a valid reference\n", ref)
+			refHash, err := r.RefResolve(ref)
+			if err != nil {
+				return err
+			}
+
+			refs = append(refs, RefEntry{ref, refHash})
 		}
 
 		return nil
@@ -425,19 +333,13 @@ func (r *Repo) GetRefs(Pattern string, getHead bool) ([]RefEntry, error) {
 
 	// Get HEAD ref if asked for
 	if getHead {
-		headFile, err := r.FilePath(false, "HEAD")
+		headHash, err := r.RefResolve("HEAD")
 		if err != nil {
 			return nil, err
 		}
 
-		// Get the relative path from the .git directory.
-		ref := strings.TrimPrefix(headFile, (r.GitDir)+"/")
-		refHash, err := r.ObjectFind(ref)
-		if err != nil {
-			return nil, err
-		}
-
-		refs = append(refs, RefEntry{ref, refHash})
+		log.Println("Found valid HEAD reference for HEAD")
+		refs = append(refs, RefEntry{"HEAD", headHash})
 	}
 
 	// Sort the entries (git keeps them sorted for display)
@@ -445,4 +347,147 @@ func (r *Repo) GetRefs(Pattern string, getHead bool) ([]RefEntry, error) {
 		return refs[i].Name < refs[j].Name
 	})
 	return refs, nil
+}
+
+// NameResolve resolves a given reference string to one or more equivalent hashes.
+// Useful to:
+//   - Convert a short hash to a list of matching full size hashes.
+//   - Convert a symbolic, head or tag reference to a list of matching
+//     full size hashes.
+func (r *Repo) NameResolve(name string) ([]string, error) {
+	matches := []string{}
+
+	name = strings.TrimSpace(name)
+	if name == "" {
+		// Can't do much if nothing is given!
+		return matches, nil
+	}
+
+	// Get all the references matching the given name if available
+	refs, err := r.GetRefs(name, false)
+	if err != nil {
+		log.Printf("Can't resolve %s due to %v", name, err)
+		return nil, err
+	}
+
+	// If HEAD is asked for, then get '.git/HEAD' as well.
+	if name == "HEAD" {
+		headHash, err := r.RefResolve("HEAD")
+		if err == nil {
+			log.Printf("Found HEAD reference as: %s\n", headHash)
+			refs = append(refs, RefEntry{"HEAD", headHash})
+		}
+	}
+
+	// The reference can be given as any part starting with last component in
+	// a valid path. Such as "master", "heads/master" or "refs/heads/master", all
+	// are valid references to a branch "master". The order of precendence is
+	// as follows. The first matching entry is returned.
+	//  HEAD
+	// 	refs/<name>
+	//  refs/tags/<name>
+	//  refs/heads/<name>
+	//  refs/remotes/<refname>
+	//  refs/remotes/<refname>/HEAD
+	//
+	// Just pick the ref with shortest name as per the rules above.
+	// TODO: enhance this algorithm with actual matches. Shortest way just
+	// happens to work right now.
+	if len(refs) > 0 {
+		sort.Slice(refs, func(i, j int) bool {
+			return len(refs[i].Name) < len(refs[j].Name)
+		})
+		log.Printf("Found %d references for %s", len(refs), name)
+		matches = append(matches, refs[0].RefHash)
+	}
+
+	// The given name may even be a short or full hash.
+	// Check if the given ref is a valid hexadecimal hash.
+	re := regexp.MustCompile(`^[a-fA-F0-9]*$`)
+	if !re.MatchString(name) {
+		return matches, nil
+	}
+
+	// If the hash is smaller than 4, then return. "git" doesn't resolve
+	// a hash smaller than 4 characters.
+	// Also, git hashes are limited to 40 char (SHA1)
+	if len(name) < 4 || len(name) > 40 {
+		return matches, nil
+	}
+
+	// If the hash is given in full size, then use it as is.
+	if len(name) == 40 {
+		matches = append(matches, name)
+		return matches, nil
+	}
+
+	// If reached here, then 'name' may be a valid short hash matching one or
+	// more full hashes. Collect them all by looking at all files inside '.git/objects'.
+	objectsPath, err := r.DirPath(true, "objects", name[0:2])
+	if err != nil {
+		log.Printf("Objects path not found for name %s (%v)", name, err)
+		return matches, nil
+	}
+
+	// Read all files under this directory and collect all files matching the
+	// remaining hash (after first 2 char).
+	files, err := ioutil.ReadDir(objectsPath)
+	if err != nil {
+		log.Printf("Objects path dir %s access error (%v)", objectsPath, err)
+		return matches, nil
+	}
+
+	for _, file := range files {
+		if !file.IsDir() && strings.HasPrefix(file.Name(), name[2:]) {
+			matches = append(matches, name[0:2]+file.Name())
+		}
+	}
+
+	return matches, nil
+}
+
+// UniqueNameResolve converts a given name to a unique valid full object hash.
+// It returns an error if there are less or more than 1 matching objects to the
+// given name.
+// This can be used by many commands to act on a single unique hash after taking
+// a possible ambiguous name from the user.
+func (r *Repo) UniqueNameResolve(name string) (string, error) {
+	errmsg := fmt.Sprintf("fatal: ambiguous argument '%s': unknown revision or "+
+		"path not in the working tree", name)
+
+	matches, err := r.NameResolve(name)
+	if err != nil || len(matches) == 0 {
+		log.Printf("Failed to convert name %s to object hash or no matches "+
+			"found: %v", name, err)
+		return "", fmt.Errorf(errmsg)
+	}
+
+	// If there are more than one matches, then prepare an error with all the
+	// matches.
+	if len(matches) > 1 {
+		msg := fmt.Sprintf("short SHA1 %s is ambiguous\n"+
+			"Matching SHA1 list:\n"+
+			"%s", name, strings.Join(matches, "\n"))
+		return "", fmt.Errorf(msg)
+	}
+
+	return matches[0], nil
+}
+
+// ValidateRef strictly validates if a given reference is a valid reference
+// in the local repository (or is HEAD). Returns the resolved object hash.
+// This can be used by commands such as "gogit show-ref -verify".
+func (r *Repo) ValidateRef(ref string) (string, error) {
+	msg := "fatal: '{%s}' - not a valid ref"
+	if ref != "HEAD" && !strings.HasPrefix(ref, "refs") {
+		return "", fmt.Errorf(msg, ref)
+	}
+
+	refHash, err := r.UniqueNameResolve(ref)
+	if err != nil {
+		log.Println(err)
+		return "", fmt.Errorf(msg, ref)
+	}
+
+	return refHash, nil
 }

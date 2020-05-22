@@ -64,8 +64,8 @@ func (cmd *CheckoutCommand) Execute() {
 	repo, err := git.GetRepo(".")
 	util.Check(err)
 
-	// Resolve the given hash to a full hash.
-	objHash, err := repo.ObjectFind(cmd.revision)
+	// Resolve the given revision to a full hash.
+	objHash, err := repo.UniqueNameResolve(cmd.revision)
 	util.Check(err)
 
 	obj, err := repo.ObjectParse(objHash)
