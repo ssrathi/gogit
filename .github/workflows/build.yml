@@ -32,9 +32,15 @@ jobs:
 
     - name: Build
       run: go build -v .
-    
-    - name: Vet
-      run: golint ./...
 
     - name: Test
       run: go test -v ./...
+
+    - name: Lint
+      run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
+        go get -u golang.org/x/lint/golint 
+        golint ./...
+
+    - name: Vet
+      run: go vet ./...
