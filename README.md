@@ -1,7 +1,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ssrathi/gogit)](https://goreportcard.com/report/github.com/ssrathi/gogit)
 [![GoDoc](https://godoc.org/github.com/ssrathi/gogit?status.svg)](https://godoc.org/github.com/ssrathi/gogit)
 
-<img src="https://github.com/ssrathi/gogit/blob/master/assets/cover.png" width="200"/>
+<img src="assets/cover.png" width="200"/>
 
 # gogit
 
