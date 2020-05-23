@@ -36,7 +36,7 @@ func (cmd *RevParseCommand) Init(args []string) error {
 	}
 
 	if cmd.fs.NArg() < 1 {
-		return errors.New("Error: Missing <identifier> argument\n")
+		return errors.New("error: Missing <identifier> argument")
 	}
 
 	cmd.revision = cmd.fs.Arg(0)

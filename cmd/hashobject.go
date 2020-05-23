@@ -46,7 +46,7 @@ func (cmd *HashObjectCommand) Init(args []string) error {
 	}
 
 	if cmd.fs.NArg() < 1 {
-		return errors.New("Error: Missing <file> argument\n")
+		return errors.New("Error: Missing <file> argument")
 	}
 
 	cmd.file = cmd.fs.Arg(0)

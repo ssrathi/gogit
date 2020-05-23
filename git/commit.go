@@ -10,31 +10,31 @@ import (
 )
 
 const (
-	// AUTHOR_NAME is tbe name of the author used as part of metadata of a commit.
-	AUTHOR_NAME string = "Shyamsunder Rathi"
-	// AUTHOR_EMAIL is the email of the author used as part of metadata of a commit.
-	AUTHOR_EMAIL string = "sxxxxxx@gmail.com"
+	// AuthorName is tbe name of the author used as part of metadata of a commit.
+	AuthorName string = "Shyamsunder Rathi"
+	// AuthorEmail is the email of the author used as part of metadata of a commit.
+	AuthorEmail string = "sxxxxxx@gmail.com"
 )
 
 type entryMap map[string][]string
 
-// GitCommit is a object with a map of "commit" entries, commit msg and a git object.
-type GitCommit struct {
+// Commit is a object with a map of "commit" entries, commit msg and a git object.
+type Commit struct {
 	Repository *Repo
-	Obj        *GitObject
+	Obj        *Object
 	Entries    entryMap
 	// Keep the keys to maintain the insertion order.
 	Keys []string
 	Msg  string
 }
 
-// NewCommit creates a new commit object by parsing a GitObject.
-func NewCommit(repo *Repo, obj *GitObject) (*GitCommit, error) {
+// NewCommit creates a new commit object by parsing a Object.
+func NewCommit(repo *Repo, obj *Object) (*Commit, error) {
 	if obj.ObjType != "commit" {
 		return nil, fmt.Errorf("Malformed object: bad type %s", obj.ObjType)
 	}
 
-	commit := GitCommit{
+	commit := Commit{
 		Repository: repo,
 		Obj:        obj,
 		Entries:    entryMap{},
@@ -52,7 +52,7 @@ func NewCommit(repo *Repo, obj *GitObject) (*GitCommit, error) {
 // NewCommitFromParams builds a commit object using a 'tree' and optionall a
 // 'parent' hash, and a given commit message.
 // This can be used by CLI commands such as "gogit commit-tree".
-func NewCommitFromParams(repo *Repo, treeHash, parentHash, msg string) (*GitCommit, error) {
+func NewCommitFromParams(repo *Repo, treeHash, parentHash, msg string) (*Commit, error) {
 	data := []byte{}
 	data = append(data, []byte("tree "+treeHash+"\n")...)
 	if parentHash != "" {
@@ -65,7 +65,7 @@ func NewCommitFromParams(repo *Repo, treeHash, parentHash, msg string) (*GitComm
 	timeStamp := strconv.FormatInt(cTime.Unix(), 10) + " " + cTime.Format("-0700")
 
 	// Build author and commiter values
-	authorValue := fmt.Sprintf("%s <%s> %s", AUTHOR_NAME, AUTHOR_EMAIL, timeStamp)
+	authorValue := fmt.Sprintf("%s <%s> %s", AuthorName, AuthorEmail, timeStamp)
 
 	data = append(data, []byte("author "+authorValue+"\n")...)
 	data = append(data, []byte("committer "+authorValue+"\n")...)
@@ -77,29 +77,29 @@ func NewCommitFromParams(repo *Repo, treeHash, parentHash, msg string) (*GitComm
 }
 
 // Type returns the type string of a commit object.
-func (commit *GitCommit) Type() string {
+func (commit *Commit) Type() string {
 	return "commit"
 }
 
 // DataSize returns the size of the data of a commit object.
-func (commit *GitCommit) DataSize() int {
+func (commit *Commit) DataSize() int {
 	return len(commit.Obj.ObjData)
 }
 
 // TreeHash returns the "tree" object hash inside the given commit object.
 // Each commit object has only one "tree" object inside it.
-func (commit *GitCommit) TreeHash() string {
+func (commit *Commit) TreeHash() string {
 	return commit.Entries["tree"][0]
 }
 
 // Parents returns a list of parents of the given commit. If there are no
 // parent (base commit), then it returns an empty list.
-func (commit *GitCommit) Parents() []string {
+func (commit *Commit) Parents() []string {
 	return commit.Entries["parent"]
 }
 
 // Print returns a string representation of a commit object.
-func (commit *GitCommit) Print() string {
+func (commit *Commit) Print() string {
 	var b strings.Builder
 
 	// Print the key-values in insertion order first.
@@ -117,7 +117,7 @@ func (commit *GitCommit) Print() string {
 
 // PrettyPrint prints a commit object in a human readable format, similar to
 // what is shown by "git log" output.
-func (commit *GitCommit) PrettyPrint() (string, error) {
+func (commit *Commit) PrettyPrint() (string, error) {
 	var b strings.Builder
 
 	// Find the commit hash of this commit object first.
@@ -166,7 +166,7 @@ func (commit *GitCommit) PrettyPrint() (string, error) {
 
 // ParseData parses a commit object's bytes and prepares a dictionary of its
 // components.
-func (commit *GitCommit) ParseData() error {
+func (commit *Commit) ParseData() error {
 	/* Commit object has the following format:
 	<key1> <value1>\n
 	<key2> <value2 ...>\n

@@ -5,19 +5,19 @@ import (
 	"io/ioutil"
 )
 
-// GitBlob is a git object to represent the data of a single file.
-type GitBlob struct {
+// Blob is a git object to represent the data of a single file.
+type Blob struct {
 	Repository *Repo
-	Obj        *GitObject
+	Obj        *Object
 }
 
-// NewBlob creates a new blob object by parsing a GitObject.
-func NewBlob(repo *Repo, obj *GitObject) (*GitBlob, error) {
+// NewBlob creates a new blob object by parsing a Object.
+func NewBlob(repo *Repo, obj *Object) (*Blob, error) {
 	if obj.ObjType != "blob" {
 		return nil, fmt.Errorf("Malformed object: bad type %s", obj.ObjType)
 	}
 
-	blob := GitBlob{
+	blob := Blob{
 		Repository: repo,
 		Obj:        obj,
 	}
@@ -25,13 +25,13 @@ func NewBlob(repo *Repo, obj *GitObject) (*GitBlob, error) {
 }
 
 // NewBlobFromFile creates a new blob object by reading data from a file.
-func NewBlobFromFile(repo *Repo, file string) (*GitBlob, error) {
+func NewBlobFromFile(repo *Repo, file string) (*Blob, error) {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	blob := GitBlob{
+	blob := Blob{
 		Repository: repo,
 		Obj:        NewObject("blob", data),
 	}
@@ -39,16 +39,16 @@ func NewBlobFromFile(repo *Repo, file string) (*GitBlob, error) {
 }
 
 // Print returns a string representation of a blob object.
-func (blob *GitBlob) Print() string {
+func (blob *Blob) Print() string {
 	return string(blob.Obj.ObjData)
 }
 
 // Type returns the type string of a blob object.
-func (blob *GitBlob) Type() string {
+func (blob *Blob) Type() string {
 	return "blob"
 }
 
 // DataSize returns the size of the data of a blob object.
-func (blob *GitBlob) DataSize() int {
+func (blob *Blob) DataSize() int {
 	return len(blob.Obj.ObjData)
 }

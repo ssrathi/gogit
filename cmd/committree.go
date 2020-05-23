@@ -41,12 +41,12 @@ func (cmd *CommitTreeCommand) Init(args []string) error {
 	}
 
 	if cmd.fs.NArg() < 1 {
-		return errors.New("Error: Missing <tree> argument\n")
+		return errors.New("error: Missing <tree> argument")
 	}
 
 	// Message is currently mandatory till getting it from an editor is implemented.
 	if cmd.msg == "" {
-		return errors.New("Error: Missing [-m message] argument\n")
+		return errors.New("error: Missing [-m message] argument")
 	}
 
 	cmd.treeHash = cmd.fs.Arg(0)

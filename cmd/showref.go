@@ -44,7 +44,7 @@ func (cmd *ShowRefCommand) Init(args []string) error {
 	}
 
 	if cmd.fs.NArg() == 0 && cmd.verify {
-		return errors.New("fatal: --verify requires a reference\n")
+		return errors.New("fatal: --verify requires a reference")
 	}
 
 	if cmd.fs.NArg() >= 1 {

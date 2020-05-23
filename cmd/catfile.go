@@ -51,22 +51,22 @@ func (cmd *CatFileCommand) Init(args []string) error {
 	}
 
 	if cmd.fs.NArg() < 1 {
-		return errors.New("Error: Missing <object> argument\n")
+		return errors.New("error: Missing <object> argument")
 	}
 
 	// All optional boolean args are mutually exclusive
 	if !(cmd.getType || cmd.getSize || cmd.printObj) {
-		return errors.New("Error: one of '-t', '-s' or '-p' must be provided\n")
+		return errors.New("error: one of '-t', '-s' or '-p' must be provided")
 	}
 
 	if cmd.getType && cmd.getSize {
-		return errors.New("Error: switch 't' and 's' are incompatible\n")
+		return errors.New("error: switch 't' and 's' are incompatible")
 	}
 	if cmd.getSize && cmd.printObj {
-		return errors.New("Error: switch 's' and 'p' are incompatible\n")
+		return errors.New("error: switch 's' and 'p' are incompatible")
 	}
 	if cmd.printObj && cmd.getType {
-		return errors.New("Error: switch 'p' and 't' are incompatible\n")
+		return errors.New("error: switch 'p' and 't' are incompatible")
 	}
 
 	cmd.revision = cmd.fs.Arg(0)

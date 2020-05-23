@@ -45,7 +45,7 @@ func (cmd *CheckoutCommand) Init(args []string) error {
 	}
 
 	if cmd.fs.NArg() < 1 {
-		return errors.New("Error: Missing <object> argument\n")
+		return errors.New("error: Missing <object> argument")
 	}
 
 	cmd.revision = cmd.fs.Arg(0)

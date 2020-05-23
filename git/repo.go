@@ -172,7 +172,7 @@ func (r *Repo) FilePath(create bool, paths ...string) (string, error) {
 
 // ObjectParse finds the data referred by the given sha1 hash and add the data to the
 // object as per "Git" specifications.
-func (r *Repo) ObjectParse(objHash string) (*GitObject, error) {
+func (r *Repo) ObjectParse(objHash string) (*Object, error) {
 	dataFile, err := r.FilePath(
 		false, "objects", string(objHash[0:2]), string(objHash[2:]))
 	if err != nil {
@@ -210,7 +210,7 @@ func (r *Repo) ObjectParse(objHash string) (*GitObject, error) {
 
 // ObjectWrite calculates the sha1 of a git object and optionally write it to a
 // file as per "Git" specifications.
-func (r *Repo) ObjectWrite(obj *GitObject, write bool) (string, error) {
+func (r *Repo) ObjectWrite(obj *Object, write bool) (string, error) {
 	// Prepare header
 	header := []byte(obj.ObjType + " " + strconv.Itoa(len(obj.ObjData)) + "\x00")
 	data := append(header, obj.ObjData...)

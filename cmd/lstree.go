@@ -37,7 +37,7 @@ func (cmd *LsTreeCommand) Init(args []string) error {
 	}
 
 	if cmd.fs.NArg() < 1 {
-		return errors.New("Error: Missing <tree-ish> argument\n")
+		return errors.New("error: Missing <tree-ish> argument")
 	}
 
 	cmd.revision = cmd.fs.Arg(0)

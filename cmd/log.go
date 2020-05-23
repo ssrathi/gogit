@@ -90,7 +90,7 @@ func (cmd *LogCommand) Execute() {
 		}
 
 		// See if the user specified limit is reached.
-		printed += 1
+		printed++
 		if cmd.limit > 0 && printed == cmd.limit {
 			break
 		}
