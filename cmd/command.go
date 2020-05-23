@@ -75,6 +75,6 @@ func Execute() {
 		return
 	}
 
-	fmt.Printf("%[1]s: '%s' is not a valid command. See '%[1]s --help'.\n",
+	fmt.Printf("%[1]s : '%s' is not a valid command. See '%[1]s --help'.\n",
 		progName, subcommand)
 }
