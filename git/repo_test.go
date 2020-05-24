@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"testing"
 
 	"github.com/ssrathi/gogit/util"
@@ -31,9 +30,8 @@ func assertEqual(t *testing.T, got interface{}, want interface{}) {
 	t.Helper()
 
 	if got != want {
-		_, file, line, _ := runtime.Caller(1)
-		t.Fatalf("%s:%d - got '%+v' (%v), want '%+v' (%v)", filepath.Base(file),
-			line, got, reflect.TypeOf(got), want, reflect.TypeOf(want))
+		t.Fatalf("got '%+v' (%v), want '%+v' (%v)", got, reflect.TypeOf(got),
+			want, reflect.TypeOf(want))
 	}
 }
 
@@ -103,7 +101,7 @@ func TestCommands(t *testing.T) {
 	})
 
 	// Validate that a repo creation in a non-emptry dir fails.
-	t.Run("Validate repository", func(t *testing.T) {
+	t.Run("Validate non-empty repository creation failure", func(t *testing.T) {
 		_, err := NewRepo(repoDir)
 		want := fmt.Sprintf("Work-tree %q is not empty", repoDir)
 		assertEqual(t, err.Error(), want)
