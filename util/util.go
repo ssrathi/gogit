@@ -4,12 +4,17 @@ package util
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 )
 
 // Check is a helper function to exit on irrecoverable error.
 func Check(err error) {
 	if err != nil {
+		_, file, line, _ := runtime.Caller(1)
+		log.Printf("%s:%d %s", filepath.Base(file), line, err)
 		fmt.Println(err)
 		os.Exit(1)
 	}

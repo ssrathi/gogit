@@ -98,6 +98,18 @@ func (commit *Commit) Parents() []string {
 	return commit.Entries["parent"]
 }
 
+// Author returns the name and email of the author of the given commit.
+func (commit *Commit) Author() (name, email string) {
+	items := strings.Fields(commit.Entries["author"][0])
+	email = items[len(items)-3]
+	name = strings.Join(items[:len(items)-3], " ")
+
+	// Remove <> around email (format: <xx@yy.com>)
+	email = strings.TrimLeft(email, "<")
+	email = strings.TrimRight(email, ">")
+	return
+}
+
 // Print returns a string representation of a commit object.
 func (commit *Commit) Print() string {
 	var b strings.Builder
