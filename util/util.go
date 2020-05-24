@@ -32,8 +32,8 @@ func IsDirEmpty(path string) (bool, error) {
 	return false, nil
 }
 
-// IsDirPresent checks if given directory exists.
-func IsDirPresent(path string) bool {
+// IsPathPresent checks if given path (dir or file) exists.
+func IsPathPresent(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}

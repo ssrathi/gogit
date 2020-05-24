@@ -1,4 +1,4 @@
-[![Builds](https://github.com/ssrathi/gogit/workflows/Go/badge.svg?branch=master)](https://github.com/ssrathi/gogit/actions?query=branch%3Amaster+workflow%3AGo+is%3Acompleted)
+[![Builds](https://github.com/ssrathi/gogit/workflows/Build/badge.svg?branch=master)](https://github.com/ssrathi/gogit/actions?query=branch%3Amaster+workflow%3ABuild+is%3Acompleted)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ssrathi/gogit)](https://goreportcard.com/report/github.com/ssrathi/gogit)
 [![GoDoc](https://godoc.org/github.com/ssrathi/gogit?status.svg)](https://godoc.org/github.com/ssrathi/gogit)
 

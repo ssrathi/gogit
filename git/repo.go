@@ -42,7 +42,7 @@ func NewRepo(path string) (*Repo, error) {
 
 	// Validate that the WorkTree is either empty or it doesn't exist.
 	log.Printf("Creating an empty git repo at path: %q\n", path)
-	if util.IsDirPresent(repo.WorkTree) {
+	if util.IsPathPresent(repo.WorkTree) {
 		// Make sure if it empty.
 		empty, _ := util.IsDirEmpty(repo.WorkTree)
 		if !empty {
@@ -101,7 +101,7 @@ func GetRepo(path string) (*Repo, error) {
 
 		// Check if git directory is present.
 		GitDir := filepath.Join(path, ".git")
-		isPresent := util.IsDirPresent(GitDir)
+		isPresent := util.IsPathPresent(GitDir)
 		isDir, _ := util.IsPathDir(GitDir)
 
 		if isPresent && isDir {
@@ -134,7 +134,7 @@ func (r *Repo) DirPath(create bool, paths ...string) (string, error) {
 	path := filepath.Join(paths...)
 
 	// Make sure the path is a directory.
-	if util.IsDirPresent(path) {
+	if util.IsPathPresent(path) {
 		isDir, _ := util.IsPathDir(path)
 		if !isDir {
 			err := fmt.Errorf("Path %q is not a directory", path)
@@ -381,7 +381,7 @@ func (r *Repo) NameResolve(name string) ([]string, error) {
 
 	// The reference can be given as any part starting with last component in
 	// a valid path. Such as "master", "heads/master" or "refs/heads/master", all
-	// are valid references to a branch "master". The order of precendence is
+	// are valid references to a branch "master". The order of precedence is
 	// as follows. The first matching entry is returned.
 	//  HEAD
 	// 	refs/<name>

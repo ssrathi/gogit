@@ -41,7 +41,5 @@ func TestHashObject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got != want {
-		t.Errorf("hash was incorrect, got: %s, want: %s.", got, want)
-	}
+	assertEqual(t, got, want)
 }
