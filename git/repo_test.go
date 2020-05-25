@@ -38,70 +38,93 @@ func assertEqual(t *testing.T, got interface{}, want interface{}) {
 }
 
 // setupTestArtifacts creates objects in a new repo for testing gogit commands.
-func setupTestArtifacts(t *testing.T) {
-	t.Helper()
-
-	// Disable internal logs during test runs.
-	log.SetOutput(ioutil.Discard)
-	log.SetFlags(0)
-
+func setupTestArtifacts() error {
 	var err error
 	repoDir, err = ioutil.TempDir(os.TempDir(), "testGoGit")
-	assertEqual(t, err, nil)
-	t.Logf("Repository directory: %s", repoDir)
+	if err != nil {
+		return err
+	}
 
 	repo, err = NewRepo(repoDir)
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
 	testFile = "testfile"
 	tmpFile, err := os.OpenFile(filepath.Join(repoDir, testFile),
 		os.O_WRONLY|os.O_CREATE, 0644)
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
 
 	testData = "Hello World\n"
 	_, err = tmpFile.WriteString(testData)
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
 	tmpFile.Close()
 
 	// Save this file's data as a blob first.
 	blob, err = NewBlobFromFile(repo, tmpFile.Name())
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
 	blobHash, err = repo.ObjectWrite(blob.Object, true)
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
 
 	// Create a tree with this blob
 	treeInput = fmt.Sprintf("100644 blob %s\t%s\n",
 		blobHash, filepath.Base(tmpFile.Name()))
-	t.Logf("Tree input: %s", treeInput)
 	tree, err = NewTreeFromInput(repo, treeInput)
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
 
 	// Write the tree now.
 	treeHash, err = repo.ObjectWrite(tree.Object, true)
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
 
 	// Make a commit with this tree.
 	commitMsg = "Test commit for testing"
 	commit, err = NewCommitFromParams(repo, treeHash, "", commitMsg)
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
 
 	// Write the commit now.
 	commitHash, err = repo.ObjectWrite(commit.Object, true)
-	assertEqual(t, err, nil)
-
-	t.Logf("Blob  : %s", blobHash)
-	t.Logf("Tree  : %s", treeHash)
-	t.Logf("Commit: %s", commitHash)
+	if err != nil {
+		return err
+	}
 
 	// Write the commit hash to master branch reference manually.
 	// TODO: Use internal API once 'update-ref' is implemented.
 	masterFile, _ := repo.FilePath(false, "refs", "heads", "master")
 	err = ioutil.WriteFile(masterFile, []byte(commitHash+"\n"), 0644)
-	assertEqual(t, err, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func TestCommands(t *testing.T) {
-	setupTestArtifacts(t)
+func TestRepo(t *testing.T) {
+	// Disable internal logs during test runs.
+	log.SetOutput(ioutil.Discard)
+	log.SetFlags(0)
+
+	// Set up a git repo and create few objects in it for testing.
+	err := setupTestArtifacts()
 	defer os.RemoveAll(repoDir)
+	assertEqual(t, err, nil)
+
+	t.Logf("Repository directory: %s", repoDir)
+	t.Logf("Blob  : %s", blobHash)
+	t.Logf("Tree  : %s", treeHash)
+	t.Logf("Commit: %s", commitHash)
 
 	// Validate 'gogit' init operations by checking various folders and files
 	// in the repo.
