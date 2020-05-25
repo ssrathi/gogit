@@ -92,25 +92,25 @@ func (cmd *CatFileCommand) Execute() {
 	obj, err := repo.ObjectParse(objHash)
 	util.Check(err)
 
-	var gitType git.GitType
+	var objIntf git.ObjIntf
 	switch obj.ObjType {
 	case "blob":
-		gitType, err = git.NewBlob(repo, obj)
+		objIntf, err = git.NewBlob(repo, obj)
 		util.Check(err)
 	case "tree":
-		gitType, err = git.NewTree(repo, obj)
+		objIntf, err = git.NewTree(repo, obj)
 		util.Check(err)
 	case "commit":
-		gitType, err = git.NewCommit(repo, obj)
+		objIntf, err = git.NewCommit(repo, obj)
 		util.Check(err)
 	}
 
 	// Only one of 'printObj', 'getType' and 'getSize' is provided.
 	if cmd.printObj {
-		fmt.Print(gitType.Print())
+		fmt.Print(objIntf.Print())
 	} else if cmd.getType {
-		fmt.Println(gitType.Type())
+		fmt.Println(objIntf.Type())
 	} else if cmd.getSize {
-		fmt.Println(gitType.DataSize())
+		fmt.Println(objIntf.DataSize())
 	}
 }

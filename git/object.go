@@ -1,7 +1,7 @@
 package git
 
-// GitType is a common interface shared by all type of git objects.
-type GitType interface {
+// ObjIntf is a common interface shared by all type of git objects.
+type ObjIntf interface {
 	Print() string
 	Type() string
 	DataSize() int
