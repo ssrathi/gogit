@@ -198,7 +198,7 @@ func TestRepo(t *testing.T) {
 
 	t.Run("Validate cat-file tree -s option", func(t *testing.T) {
 		got := tree.DataSize()
-		// "git cat-file -s" for this gives 36. This is not the same as lenght
+		// "git cat-file -s" for this gives 36. This is not the same as length
 		// of "treeInput" as the blob hash is stored as binary bytes.
 		want := 36
 		assertEqual(t, got, want)
@@ -259,7 +259,7 @@ func TestRepo(t *testing.T) {
 		testTree, err := NewTree(repo, obj)
 		assertEqual(t, err, nil)
 
-		// "git cat-file -s" for this gives 36. This is not the same as lenght
+		// "git cat-file -s" for this gives 36. This is not the same as length
 		// of "treeInput" as the blob hash is stored as binary bytes.
 		assertEqual(t, testTree.Print(), treeInput)
 		assertEqual(t, testTree.DataSize(), 36)
