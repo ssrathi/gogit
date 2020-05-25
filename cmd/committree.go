@@ -77,7 +77,7 @@ func (cmd *CommitTreeCommand) Execute() {
 	util.Check(err)
 
 	// Write the commit now.
-	hash, err := repo.ObjectWrite(commit.Obj, true)
+	hash, err := repo.ObjectWrite(commit.Object, true)
 	util.Check(err)
 
 	fmt.Println(hash)

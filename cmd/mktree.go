@@ -58,7 +58,7 @@ func (cmd *MkTreeCommand) Execute() {
 	util.Check(err)
 
 	// Write the tree now.
-	hash, err := repo.ObjectWrite(tree.Obj, true)
+	hash, err := repo.ObjectWrite(tree.Object, true)
 	util.Check(err)
 
 	fmt.Println(hash)

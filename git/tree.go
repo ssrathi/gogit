@@ -23,8 +23,8 @@ type TreeEntry struct {
 // Tree is a object with a list of "tree" entries and a git object.
 type Tree struct {
 	Repository *Repo
-	Obj        *Object
-	Entries    []TreeEntry
+	*Object
+	Entries []TreeEntry
 }
 
 // NewTree creates a new tree object by parsing a Object.
@@ -35,7 +35,7 @@ func NewTree(repo *Repo, obj *Object) (*Tree, error) {
 
 	tree := Tree{
 		Repository: repo,
-		Obj:        obj,
+		Object:     obj,
 		Entries:    []TreeEntry{},
 	}
 
@@ -86,7 +86,7 @@ func (tree *Tree) Type() string {
 
 // DataSize returns the size of the data of a tree object.
 func (tree *Tree) DataSize() int {
-	return len(tree.Obj.ObjData)
+	return len(tree.ObjData)
 }
 
 // Print returns a string representation of a tree object.
@@ -105,10 +105,10 @@ func (tree *Tree) Print() string {
 
 // ParseData parses a tree object's bytes and prepares a list of its components.
 func (tree *Tree) ParseData() error {
-	datalen := len(tree.Obj.ObjData)
+	datalen := len(tree.ObjData)
 	for start := 0; start < datalen; {
 		// First get the mode which has a space after that.
-		data := tree.Obj.ObjData[start:]
+		data := tree.ObjData[start:]
 		spaceInd := bytes.IndexByte(data, byte(' '))
 		entryMode := string(data[0:spaceInd])
 
@@ -186,7 +186,7 @@ func (tree *Tree) Checkout(path string) error {
 
 			// Mode is in the format 100xxx. Strip the 100 from it.
 			mode, _ := strconv.ParseInt(entry.mode[3:], 8, 32)
-			err = ioutil.WriteFile(createPath, blob.Obj.ObjData, os.FileMode(mode))
+			err = ioutil.WriteFile(createPath, blob.ObjData, os.FileMode(mode))
 			if err != nil {
 				return err
 			}

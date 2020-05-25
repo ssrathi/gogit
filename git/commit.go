@@ -21,8 +21,8 @@ type entryMap map[string][]string
 // Commit is a object with a map of "commit" entries, commit msg and a git object.
 type Commit struct {
 	Repository *Repo
-	Obj        *Object
-	Entries    entryMap
+	*Object
+	Entries entryMap
 	// Keep the keys to maintain the insertion order.
 	Keys []string
 	Msg  string
@@ -36,7 +36,7 @@ func NewCommit(repo *Repo, obj *Object) (*Commit, error) {
 
 	commit := Commit{
 		Repository: repo,
-		Obj:        obj,
+		Object:     obj,
 		Entries:    entryMap{},
 		Keys:       []string{},
 	}
@@ -83,7 +83,7 @@ func (commit *Commit) Type() string {
 
 // DataSize returns the size of the data of a commit object.
 func (commit *Commit) DataSize() int {
-	return len(commit.Obj.ObjData)
+	return len(commit.ObjData)
 }
 
 // TreeHash returns the "tree" object hash inside the given commit object.
@@ -133,7 +133,7 @@ func (commit *Commit) PrettyPrint() (string, error) {
 	var b strings.Builder
 
 	// Find the commit hash of this commit object first.
-	commitHash, _ := commit.Repository.ObjectWrite(commit.Obj, false)
+	commitHash, _ := commit.Repository.ObjectWrite(commit.Object, false)
 
 	// Print the needed key-values in "git log" format.
 	// On Bash and similar, git prints the commit hash in Yellow color.
@@ -188,9 +188,9 @@ func (commit *Commit) ParseData() error {
 	...
 	<blank line>
 	<Remaining lines are part of commit-message. */
-	datalen := len(commit.Obj.ObjData)
+	datalen := len(commit.ObjData)
 	for start := 0; start < datalen; {
-		data := commit.Obj.ObjData[start:]
+		data := commit.ObjData[start:]
 
 		spaceInd := bytes.IndexByte(data, byte(' '))
 		newLenInd := bytes.IndexByte(data, byte('\n'))

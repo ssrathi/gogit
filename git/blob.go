@@ -8,7 +8,7 @@ import (
 // Blob is a git object to represent the data of a single file.
 type Blob struct {
 	Repository *Repo
-	Obj        *Object
+	*Object
 }
 
 // NewBlob creates a new blob object by parsing a Object.
@@ -19,7 +19,7 @@ func NewBlob(repo *Repo, obj *Object) (*Blob, error) {
 
 	blob := Blob{
 		Repository: repo,
-		Obj:        obj,
+		Object:     obj,
 	}
 	return &blob, nil
 }
@@ -33,14 +33,14 @@ func NewBlobFromFile(repo *Repo, file string) (*Blob, error) {
 
 	blob := Blob{
 		Repository: repo,
-		Obj:        NewObject("blob", data),
+		Object:     NewObject("blob", data),
 	}
 	return &blob, nil
 }
 
 // Print returns a string representation of a blob object.
 func (blob *Blob) Print() string {
-	return string(blob.Obj.ObjData)
+	return string(blob.ObjData)
 }
 
 // Type returns the type string of a blob object.
@@ -50,5 +50,5 @@ func (blob *Blob) Type() string {
 
 // DataSize returns the size of the data of a blob object.
 func (blob *Blob) DataSize() int {
-	return len(blob.Obj.ObjData)
+	return len(blob.ObjData)
 }

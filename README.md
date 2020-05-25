@@ -1,4 +1,4 @@
-[![Builds](https://github.com/ssrathi/gogit/workflows/Build/badge.svg?branch=master)](https://github.com/ssrathi/gogit/actions?query=branch%3Amaster+workflow%3ABuild+is%3Acompleted)
+[![Builds](https://github.com/ssrathi/gogit/workflows/Build/badge.svg?branch=master)](https://github.com/ssrathi/gogit/actions?query=branch%3Amaster+workflow%3ABuild)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ssrathi/gogit)](https://goreportcard.com/report/github.com/ssrathi/gogit)
 [![GoDoc](https://godoc.org/github.com/ssrathi/gogit?status.svg)](https://godoc.org/github.com/ssrathi/gogit)
 
@@ -10,7 +10,7 @@ Implementation of git internal commands in Go language.
 
 This project is part of a learning exercise to implement a subset of "git"
 commands. It can be used to create and maintain git objects, such as blobs,
-trees, commits, branches and tags.
+trees, commits, references and tags.
 
 [<img src="https://asciinema.org/a/331278.svg" alt="demo" width="400" height="240"/>](https://asciinema.org/a/331278?speed=2&autoplay=1&t=8)
 
