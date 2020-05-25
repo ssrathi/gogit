@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -17,6 +18,7 @@ var (
 	blob       *Blob
 	tree       *Tree
 	commit     *Commit
+	testFile   string
 	blobHash   string
 	treeHash   string
 	commitHash string
@@ -39,6 +41,10 @@ func assertEqual(t *testing.T, got interface{}, want interface{}) {
 func setupTestArtifacts(t *testing.T) {
 	t.Helper()
 
+	// Disable internal logs during test runs.
+	log.SetOutput(ioutil.Discard)
+	log.SetFlags(0)
+
 	var err error
 	repoDir, err = ioutil.TempDir(os.TempDir(), "testGoGit")
 	assertEqual(t, err, nil)
@@ -46,7 +52,8 @@ func setupTestArtifacts(t *testing.T) {
 
 	repo, err = NewRepo(repoDir)
 	assertEqual(t, err, nil)
-	tmpFile, err := os.OpenFile(filepath.Join(repoDir, "testfile"),
+	testFile = "testfile"
+	tmpFile, err := os.OpenFile(filepath.Join(repoDir, testFile),
 		os.O_WRONLY|os.O_CREATE, 0644)
 	assertEqual(t, err, nil)
 
@@ -58,7 +65,7 @@ func setupTestArtifacts(t *testing.T) {
 	// Save this file's data as a blob first.
 	blob, err = NewBlobFromFile(repo, tmpFile.Name())
 	assertEqual(t, err, nil)
-	blobHash, err = repo.ObjectWrite(blob.Obj, true)
+	blobHash, err = repo.ObjectWrite(blob.Object, true)
 	assertEqual(t, err, nil)
 
 	// Create a tree with this blob
@@ -69,7 +76,7 @@ func setupTestArtifacts(t *testing.T) {
 	assertEqual(t, err, nil)
 
 	// Write the tree now.
-	treeHash, err = repo.ObjectWrite(tree.Obj, true)
+	treeHash, err = repo.ObjectWrite(tree.Object, true)
 	assertEqual(t, err, nil)
 
 	// Make a commit with this tree.
@@ -78,7 +85,17 @@ func setupTestArtifacts(t *testing.T) {
 	assertEqual(t, err, nil)
 
 	// Write the commit now.
-	commitHash, err = repo.ObjectWrite(commit.Obj, true)
+	commitHash, err = repo.ObjectWrite(commit.Object, true)
+	assertEqual(t, err, nil)
+
+	t.Logf("Blob  : %s", blobHash)
+	t.Logf("Tree  : %s", treeHash)
+	t.Logf("Commit: %s", commitHash)
+
+	// Write the commit hash to master branch reference manually.
+	// TODO: Use internal API once 'update-ref' is implemented.
+	masterFile, _ := repo.FilePath(false, "refs", "heads", "master")
+	err = ioutil.WriteFile(masterFile, []byte(commitHash+"\n"), 0644)
 	assertEqual(t, err, nil)
 }
 
@@ -239,5 +256,89 @@ func TestCommands(t *testing.T) {
 		name, email := testCommit.Author()
 		assertEqual(t, name, AuthorName)
 		assertEqual(t, email, AuthorEmail)
+	})
+
+	// Validate various rev-parse arguments.
+	t.Run("Validate rev-parse HEAD", func(t *testing.T) {
+		objHash, err := repo.UniqueNameResolve("HEAD")
+		assertEqual(t, err, nil)
+		assertEqual(t, objHash, commitHash)
+	})
+
+	t.Run("Validate rev-parse short hash", func(t *testing.T) {
+		objHash, err := repo.UniqueNameResolve(commitHash[:4])
+		assertEqual(t, err, nil)
+		assertEqual(t, objHash, commitHash)
+	})
+
+	t.Run("Validate rev-parse master", func(t *testing.T) {
+		objHash, err := repo.UniqueNameResolve("master")
+		assertEqual(t, err, nil)
+		assertEqual(t, objHash, commitHash)
+	})
+
+	t.Run("Validate rev-parse heads/master", func(t *testing.T) {
+		objHash, err := repo.UniqueNameResolve("heads/master")
+		assertEqual(t, err, nil)
+		assertEqual(t, objHash, commitHash)
+	})
+
+	t.Run("Validate rev-parse refs/heads/master", func(t *testing.T) {
+		objHash, err := repo.UniqueNameResolve("refs/heads/master")
+		assertEqual(t, err, nil)
+		assertEqual(t, objHash, commitHash)
+	})
+
+	t.Run("Validate rev-parse less than four short hash", func(t *testing.T) {
+		_, err := repo.UniqueNameResolve(commitHash[:3])
+		want := fmt.Sprintf("fatal: ambiguous argument '%s': unknown revision "+
+			"or path not in the working tree", commitHash[:3])
+		assertEqual(t, err.Error(), want)
+	})
+
+	t.Run("Validate rev-parse invalid", func(t *testing.T) {
+		_, err := repo.UniqueNameResolve("FOO")
+		want := fmt.Sprintf("fatal: ambiguous argument 'FOO': unknown revision " +
+			"or path not in the working tree")
+		assertEqual(t, err.Error(), want)
+	})
+
+	// Validate 'show-ref' outputs.
+	t.Run("Validate show-ref", func(t *testing.T) {
+		refs, err := repo.GetRefs("", false /* showHead */)
+		assertEqual(t, err, nil)
+		assertEqual(t, len(refs), 1)
+		assertEqual(t, refs[0].RefHash, commitHash)
+		assertEqual(t, refs[0].Name, "refs/heads/master")
+	})
+
+	t.Run("Validate show-ref with HEAD", func(t *testing.T) {
+		refs, err := repo.GetRefs("", true /* showHead */)
+		assertEqual(t, err, nil)
+		assertEqual(t, len(refs), 2)
+
+		assertEqual(t, refs[0].RefHash, commitHash)
+		assertEqual(t, refs[0].Name, "HEAD")
+
+		assertEqual(t, refs[1].RefHash, commitHash)
+		assertEqual(t, refs[1].Name, "refs/heads/master")
+	})
+
+	// Validate 'checkout' functionality.
+	t.Run("Validate checkout", func(t *testing.T) {
+		checkoutDir, err := ioutil.TempDir(os.TempDir(), "testGoGitCheckout")
+		assertEqual(t, err, nil)
+		defer os.RemoveAll(checkoutDir)
+
+		t.Logf("Checkout test directory: %s", checkoutDir)
+		err = tree.Checkout(checkoutDir)
+		assertEqual(t, err, nil)
+
+		// testFile should be created in this new path with original data.
+		dataFile := filepath.Join(checkoutDir, testFile)
+		assertEqual(t, util.IsPathPresent(dataFile), true)
+		data, err := ioutil.ReadFile(dataFile)
+		assertEqual(t, err, nil)
+		assertEqual(t, string(data), testData)
 	})
 }
