@@ -76,6 +76,12 @@ func NewRepo(path string) (*Repo, error) {
 		return nil, err
 	}
 
+	// refs/heads/master doesn't point to any commit in the beginning.
+	masterFile, _ := repo.FilePath(true, "refs", "heads", "master")
+	if err := ioutil.WriteFile(masterFile, []byte(""), 0644); err != nil {
+		return nil, err
+	}
+
 	// Write the default git configuration file. We only support few needed
 	// configuration options.
 	// NOTE: Go doesn't have a native ini parser. So create it manually.
@@ -244,18 +250,18 @@ func (r *Repo) ObjectWrite(obj *Object, write bool) (string, error) {
 }
 
 // RefResolve converts a symbolic reference to its object hash.
-func (r *Repo) RefResolve(path string) (string, error) {
+func (r *Repo) RefResolve(path string) (string, string, error) {
 	for {
 		refFile, err := r.FilePath(false, path)
 		if err != nil {
 			// Not a symbolic reference if some path of this file is not present
-			return "", err
+			return "", "", err
 		}
 
 		data, err := ioutil.ReadFile(refFile)
 		if err != nil {
 			// Not a symbolic reference if its file is not present
-			return "", err
+			return "", "", err
 		}
 
 		ref := string(data)
@@ -263,7 +269,7 @@ func (r *Repo) RefResolve(path string) (string, error) {
 
 		if !strings.HasPrefix(ref, "ref: ") {
 			// It is not a symblic reference.
-			return ref, nil
+			return ref, path, nil
 		}
 
 		// Resolve the new reference again, till a hash is found.
@@ -315,7 +321,7 @@ func (r *Repo) GetRefs(pattern string, getHead bool) ([]RefEntry, error) {
 			// a pattern is not provided.
 			// Get the relative path from the .git directory.
 			log.Printf("Found %s as a valid reference\n", ref)
-			refHash, err := r.RefResolve(ref)
+			refHash, _, err := r.RefResolve(ref)
 			if err != nil {
 				return err
 			}
@@ -333,7 +339,7 @@ func (r *Repo) GetRefs(pattern string, getHead bool) ([]RefEntry, error) {
 
 	// Get HEAD ref if asked for
 	if getHead {
-		headHash, err := r.RefResolve("HEAD")
+		headHash, _, err := r.RefResolve("HEAD")
 		if err != nil {
 			return nil, err
 		}
@@ -372,7 +378,7 @@ func (r *Repo) NameResolve(name string) ([]string, error) {
 
 	// If HEAD is asked for, then get '.git/HEAD' as well.
 	if name == "HEAD" {
-		headHash, err := r.RefResolve("HEAD")
+		headHash, _, err := r.RefResolve("HEAD")
 		if err == nil {
 			log.Printf("Found HEAD reference as: %s\n", headHash)
 			refs = append(refs, RefEntry{"HEAD", headHash})
@@ -490,4 +496,49 @@ func (r *Repo) ValidateRef(ref string) (string, error) {
 	}
 
 	return refHash, nil
+}
+
+// UpdateRef updates the given strict reference to the full hash by resolving
+// the value given by newValue.
+// If 'ref' is a symbolic reference (such as HEAD), then the target reference
+// is updated instaed (if HEAD is pointing to master, then master is updated).
+func (r *Repo) UpdateRef(ref string, newValue string) error {
+	if ref != "HEAD" && !strings.HasPrefix(ref, "refs/heads") &&
+		!strings.HasPrefix(ref, "refs/tags") {
+		return fmt.Errorf("fatal: '{%s}' - not a valid ref", ref)
+	}
+
+	// Get the full hash from given newValue.
+	newValueHash, err := r.UniqueNameResolve(newValue)
+	if err != nil {
+		return fmt.Errorf("fatal: '{%s}' - not a valid SHA1", newValue)
+	}
+
+	// If the 'ref' file is not present, then create it first.
+	refFile, _ := r.FilePath(true, ref)
+	if !util.IsPathPresent(refFile) {
+		fd, err := os.Create(refFile)
+		if err != nil {
+			return err
+		}
+		fd.Close()
+	}
+
+	// Resolve the given reference to its hash and path.
+	refHash, refPath, err := r.RefResolve(ref)
+	if err != nil {
+		log.Printf("RefResolve failed with err: %v", err)
+		return fmt.Errorf("fatal: '{%s}' - not a valid ref", ref)
+	}
+
+	log.Printf("UpdateRef - refHash: %q refPath: %q ref: %q newValueHash: %q\n",
+		refHash, refPath, ref, newValueHash)
+
+	refFile, _ = r.FilePath(false, refPath)
+	err = ioutil.WriteFile(refFile, []byte(newValueHash+"\n"), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

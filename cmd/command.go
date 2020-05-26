@@ -33,6 +33,7 @@ func Execute() {
 		NewCommitTreeCommand(),
 		NewLogCommand(),
 		NewShowRefCommand(),
+		NewUpdateRefCommand(),
 		NewRevParseCommand(),
 	}
 

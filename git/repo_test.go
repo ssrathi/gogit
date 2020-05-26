@@ -31,9 +31,8 @@ var (
 func assertEqual(t *testing.T, got interface{}, want interface{}) {
 	t.Helper()
 
-	if got != want {
-		t.Fatalf("got '%+v' (%v), want '%+v' (%v)", got, reflect.TypeOf(got),
-			want, reflect.TypeOf(want))
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got '%+[1]v' (%[1]T), want '%+[2]v' (%[2]T)", got, want)
 	}
 }
 
@@ -88,7 +87,7 @@ func setupTestArtifacts() error {
 	}
 
 	// Make a commit with this tree.
-	commitMsg = "Test commit for testing"
+	commitMsg = "Test commit for testing\n"
 	commit, err = NewCommitFromParams(repo, treeHash, "", commitMsg)
 	if err != nil {
 		return err
@@ -100,10 +99,8 @@ func setupTestArtifacts() error {
 		return err
 	}
 
-	// Write the commit hash to master branch reference manually.
-	// TODO: Use internal API once 'update-ref' is implemented.
-	masterFile, _ := repo.FilePath(false, "refs", "heads", "master")
-	err = ioutil.WriteFile(masterFile, []byte(commitHash+"\n"), 0644)
+	// Update HEAD to point to this new commit.
+	err = repo.UpdateRef("HEAD", commitHash)
 	if err != nil {
 		return err
 	}
@@ -112,9 +109,13 @@ func setupTestArtifacts() error {
 }
 
 func TestRepo(t *testing.T) {
-	// Disable internal logs during test runs.
-	log.SetOutput(ioutil.Discard)
-	log.SetFlags(0)
+	// Disable internal logs during test runs unless an ENV var is given.
+	if os.Getenv("GOGIT_DBG") != "1" {
+		log.SetOutput(ioutil.Discard)
+		log.SetFlags(0)
+	} else {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+	}
 
 	// Set up a git repo and create few objects in it for testing.
 	err := setupTestArtifacts()
@@ -283,47 +284,35 @@ func TestRepo(t *testing.T) {
 
 	// Validate various rev-parse arguments.
 	t.Run("Validate rev-parse HEAD", func(t *testing.T) {
-		objHash, err := repo.UniqueNameResolve("HEAD")
-		assertEqual(t, err, nil)
-		assertEqual(t, objHash, commitHash)
-	})
-
-	t.Run("Validate rev-parse short hash", func(t *testing.T) {
-		objHash, err := repo.UniqueNameResolve(commitHash[:4])
-		assertEqual(t, err, nil)
-		assertEqual(t, objHash, commitHash)
-	})
-
-	t.Run("Validate rev-parse master", func(t *testing.T) {
-		objHash, err := repo.UniqueNameResolve("master")
-		assertEqual(t, err, nil)
-		assertEqual(t, objHash, commitHash)
-	})
-
-	t.Run("Validate rev-parse heads/master", func(t *testing.T) {
-		objHash, err := repo.UniqueNameResolve("heads/master")
-		assertEqual(t, err, nil)
-		assertEqual(t, objHash, commitHash)
-	})
-
-	t.Run("Validate rev-parse refs/heads/master", func(t *testing.T) {
-		objHash, err := repo.UniqueNameResolve("refs/heads/master")
-		assertEqual(t, err, nil)
-		assertEqual(t, objHash, commitHash)
+		for _, revision := range []string{
+			"HEAD",
+			commitHash[:4],
+			commitHash[:7],
+			commitHash[:10],
+			commitHash[:20],
+			commitHash,
+			"master",
+			"heads/master",
+			"refs/heads/master",
+		} {
+			objHash, err := repo.UniqueNameResolve(revision)
+			assertEqual(t, err, nil)
+			assertEqual(t, objHash, commitHash)
+		}
 	})
 
 	t.Run("Validate rev-parse less than four short hash", func(t *testing.T) {
 		_, err := repo.UniqueNameResolve(commitHash[:3])
-		want := fmt.Sprintf("fatal: ambiguous argument '%s': unknown revision "+
+		want := fmt.Errorf("fatal: ambiguous argument '%s': unknown revision "+
 			"or path not in the working tree", commitHash[:3])
-		assertEqual(t, err.Error(), want)
+		assertEqual(t, err, want)
 	})
 
 	t.Run("Validate rev-parse invalid", func(t *testing.T) {
 		_, err := repo.UniqueNameResolve("FOO")
-		want := fmt.Sprintf("fatal: ambiguous argument 'FOO': unknown revision " +
+		want := fmt.Errorf("fatal: ambiguous argument 'FOO': unknown revision " +
 			"or path not in the working tree")
-		assertEqual(t, err.Error(), want)
+		assertEqual(t, err, want)
 	})
 
 	// Validate 'show-ref' outputs.
@@ -363,5 +352,36 @@ func TestRepo(t *testing.T) {
 		data, err := ioutil.ReadFile(dataFile)
 		assertEqual(t, err, nil)
 		assertEqual(t, string(data), testData)
+	})
+
+	// Validate 'update-ref' functionality.
+	t.Run("Validate update-ref HEAD to master", func(t *testing.T) {
+		for _, newValue := range []string{
+			"master",
+			"heads/master",
+			"refs/heads/master",
+		} {
+			err := repo.UpdateRef("HEAD", newValue)
+			assertEqual(t, err, nil)
+			masterHash, err := repo.UniqueNameResolve("HEAD")
+			assertEqual(t, err, nil)
+			assertEqual(t, masterHash, commitHash)
+		}
+	})
+
+	t.Run("Validate update-ref a new branch to HEAD", func(t *testing.T) {
+		ref := "refs/heads/new_branch"
+		err := repo.UpdateRef(ref, "HEAD")
+		assertEqual(t, err, nil)
+		masterHash, err := repo.UniqueNameResolve(ref)
+		assertEqual(t, err, nil)
+		assertEqual(t, masterHash, commitHash)
+	})
+
+	t.Run("Validate update-ref with an invalid ref", func(t *testing.T) {
+		newValue := "refs/heads/non-existent-ref"
+		err := repo.UpdateRef("HEAD", newValue)
+		want := fmt.Errorf("fatal: '{%s}' - not a valid SHA1", newValue)
+		assertEqual(t, err, want)
 	})
 }
