@@ -29,6 +29,7 @@ Valid commands:
   commit-tree    Create a new commit object
   log            Shows the commit logs
   show-ref       List references in a local repository
+  update-ref     Update the object name stored in a ref safely
   rev-parse      Parse a given git identifier
 
 Use "gogit <command> --help" for help on a specific command
