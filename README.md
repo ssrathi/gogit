@@ -42,11 +42,5 @@ go get github.com/ssrathi/gogit
 
 ## Contributing
 
-Contributions are most welcome! Please follow the steps below to send
-pull requests with your changes.
-
-* Fork this repository and create a feature branch in it.
-* Push a commit with your changes.
-* Create a new pull request.
-* Create a new issue and link the pull request to it.
+Contributions are most welcome! Please create a new issue and link your PR to it.
 
