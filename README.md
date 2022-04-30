@@ -14,6 +14,12 @@ trees, commits, references and tags.
 
 [<img src="https://asciinema.org/a/331278.svg" alt="demo" width="400" height="240"/>](https://asciinema.org/a/331278?speed=2&autoplay=1&t=8)
 
+# Video with explanation
+
+This video is a supplemental tech-talk recording explaining the internals of "git" (Delievered at Nutanix, Inc, 2020)
+
+[<img src="https://raw.githubusercontent.com/ssrathi/gogit/master/assets/tech-talk.jpg" alt="tech-talk" width="440" height="220"/>](https://players.brightcove.net/5850956868001/default_default/index.html?videoId=6304540004001)
+
 ## Supported commands
 ```
 gogit - the stupid content tracker
